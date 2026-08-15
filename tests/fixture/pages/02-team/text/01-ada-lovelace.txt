@@ -1,0 +1,6 @@
+name: Ada Lovelace
+role: Principal Investigator
+orcid: 0000-0002-1825-0097
+scholar: https://scholar.google.com/citations?user=FIXTURE1
+
+Ada has a biography.

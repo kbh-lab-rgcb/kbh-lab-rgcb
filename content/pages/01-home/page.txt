@@ -1,0 +1,2 @@
+title: Home
+tagline: Cellular dynamics of resolving inflammation, with special reference to the role of sphingolipids.

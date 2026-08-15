@@ -1,5 +1,0 @@
-name: Dr. Maya Patel
-role: Principal Investigator
-email: maya.patel@example.edu
-
-Maya studies how spatial organization shapes cellular decisions. She likes ambitious questions, clear figures, and mentoring researchers toward intellectual independence.

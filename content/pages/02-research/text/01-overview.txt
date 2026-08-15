@@ -1,0 +1,11 @@
+title: Overview
+
+Our central theme is the **cellular dynamics of resolving inflammation, with
+special reference to the role of sphingolipids**. Sphingolipids are not merely
+structural membrane components: sphingosine 1-phosphate and ceramide act as
+signalling molecules that set the tone of an immune response and, in tumours,
+the character of the microenvironment.
+
+Work in the lab moves between three questions — how these lipids shape innate
+immunity, how tumours exploit them, and whether the enzymes that produce them
+are tractable drug targets.

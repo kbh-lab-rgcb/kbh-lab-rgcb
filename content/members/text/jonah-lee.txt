@@ -1,5 +1,0 @@
-name: Jonah Lee
-role: Postdoctoral Fellow
-email: jonah.lee@example.edu
-
-Jonah combines live-cell imaging and perturbation experiments to understand how signals propagate through developing tissues.

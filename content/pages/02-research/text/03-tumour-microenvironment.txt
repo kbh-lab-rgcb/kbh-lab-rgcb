@@ -1,0 +1,11 @@
+title: The tumour microenvironment
+
+Pancreatic ductal adenocarcinoma is defended by a dense desmoplastic stroma that
+keeps chemotherapy out. We found that disrupting the **S1PR1/STAT3 feed-forward
+loop** breaks down that desmoplasia and re-sensitises pancreatic tumours to
+gemcitabine, and we continue to work on tumour-associated macrophages as the
+cells that hold this loop together.
+
+In colorectal cancer we target the other side of the pathway: inhibiting **acid
+ceramidase** shifts the balance of the microenvironment and enhances the
+antitumour immune response.

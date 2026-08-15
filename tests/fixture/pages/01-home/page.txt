@@ -1,0 +1,2 @@
+title: Home
+tagline: Fixture home page.

@@ -1,0 +1,8 @@
+name: Late Adder
+role: Project Associate
+
+This person wrote a biography first and added their profile links months
+later, typing them at the bottom of the file.
+
+orcid: 0000-0001-5109-3700
+website: example.org/late

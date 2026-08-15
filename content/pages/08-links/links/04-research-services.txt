@@ -1,0 +1,4 @@
+title: Research services and consultancy
+url: https://rgcb.res.in/research-services
+description: Analytical, genomic and diagnostic services offered by the institute to academic and industry users.
+featured: yes

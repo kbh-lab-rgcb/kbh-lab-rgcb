@@ -1,0 +1,2 @@
+title: Alumni
+tagline: Where people went next.

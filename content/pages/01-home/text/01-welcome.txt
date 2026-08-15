@@ -1,0 +1,11 @@
+title: Inflammation, resolved
+
+Inflammation is how the body answers injury and infection. Switching that answer
+off again — *resolution* — is just as active a process, and just as tightly
+controlled. When resolution fails, inflammation persists, and persistent
+inflammation is one of the surest routes to cancer.
+
+Our laboratory works on the lipid signals that govern this switch. We study
+**sphingosine 1-phosphate (S1P)** and the enzymes that make and break it, asking
+how they steer the innate immune response, how tumours co-opt them to build a
+permissive microenvironment, and whether they can be drugged.

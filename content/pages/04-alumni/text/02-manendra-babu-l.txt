@@ -1,0 +1,5 @@
+name: Manendra Babu L
+role: PhD
+year: 2020
+thesis: Understanding the functional role of S1PR1 in pancreatic ductal adenocarcinoma
+now: Post-doctoral fellow, Memorial Sloan Kettering Cancer Center (MSKCC), New York, USA

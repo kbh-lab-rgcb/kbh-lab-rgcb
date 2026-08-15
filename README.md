@@ -1,55 +1,94 @@
-# Editable Lab Website
+# CRP7 — Cancer Research Programme 7
 
-A polished, file-driven lab website that automatically publishes to GitHub Pages whenever the `main` branch changes.
+Website for the laboratory of **Dr. K.B. Harikumar** at BRIC-Rajiv Gandhi Centre
+for Biotechnology, Thiruvananthapuram.
 
-## Edit the lab information
+Research theme: *cellular dynamics of resolving inflammation, with special
+reference to the role of sphingolipids.*
 
-- `content/site.json` — lab name, headline, location, and email
-- `content/pages/*.txt` — text for the About, Research, People, and Join sections
-- `content/research.json` — research themes
-- `content/publications.json` — publication list
+---
 
-## Add or edit a lab member
+## Updating the site
 
-Every member uses two files with the **same base filename**:
+**Everything on the website is a file in [`content/`](content/).** Change a file
+from GitHub's web editor, commit it, and the site rebuilds and republishes
+itself in about two minutes.
 
-```text
-content/members/photos/samira-khan.jpg
-content/members/text/samira-khan.txt
-```
+👉 **[Read EDITING.md](EDITING.md)** — the guide for everyone in the lab. No code
+knowledge needed.
 
-The text file format is:
+Every folder under `content/` also contains its own README explaining what to put
+in it, which GitHub shows when you open the folder.
 
-```text
-name: Samira Khan
-role: Research Assistant
-email: samira@example.edu
+### The convention in one table
 
-Write the member biography here. It can be one or more sentences.
-```
+| To change | Put files in |
+| --- | --- |
+| Lab name, address, phones, emails | `content/site.json` |
+| A page's words | `content/pages/<page>/text/` |
+| A page's banner (2+ images = slideshow) | `content/pages/<page>/banner/` |
+| Lab members | `content/pages/03-team/photos/` + `text/` (same filename) |
+| Alumni | `content/pages/04-alumni/text/` |
+| Publications | `content/pages/05-publications/years/2026.txt` |
+| Gallery | `content/pages/06-gallery/photos/` |
+| Outgoing links | `content/pages/08-links/links/` |
 
-Photo formats supported: `.jpg`, `.jpeg`, `.png`, `.webp`, and `.svg`. To remove a member, delete both matching files.
+One folder under `content/pages/` = one page = one item in the navigation. Add a
+folder to add a page.
 
-## Publish on GitHub Pages
+**Nothing in `content/` can break the build.** A photo without a text file, an
+empty file, a missing folder — each produces a sensible fallback and a warning in
+the Actions log, never a failed deploy.
 
-1. Create a GitHub repository and upload this project.
-2. In the repository, open **Settings → Pages**.
-3. Under **Build and deployment**, choose **GitHub Actions**.
-4. Push changes to `main`. The included workflow rebuilds and publishes the site automatically.
+---
 
-After setup, editors only need to change files in `content/` through GitHub’s web editor or by pushing changes. The site rebuilds from those files—there is no database or admin panel to maintain.
+## For developers
 
-## Preview locally
+A small TypeScript static site generator. No framework, no database, no server.
 
 ```bash
 npm install
-npm run dev
+npm run dev        # preview at localhost:3000 with live reload
+npm run build      # generate docs/
+npm run check      # report what the site reads from content/, without building
+npm run test       # build the fixture + real site and assert over the HTML
+npm run typecheck  # tsc --noEmit
 ```
 
-To create the static GitHub Pages output manually:
+### Layout
 
-```bash
-npm run build:github
+```text
+src/
+  content/     load.ts walks content/ into a typed model; never throws
+               text.ts parses the key:value + body format
+               images.ts sharp variants + srcset, content-hash cached
+  render/      layout.ts is the page shell, pages.ts one renderer per page kind
+  client/      main.ts — carousel, theme toggle, mobile nav, lightbox
+  styles/      tokens.css (light + dark), base, layout, components
+  build.ts     the single build entry point used by dev, build and tests
+scripts/       build.ts  dev.ts  check.ts
+tests/         build.test.mjs + fixture/ covering the edge cases
 ```
 
-The static files will be written to `docs/`.
+### Things worth knowing before changing it
+
+- **All URLs are relative to the page that emits them** (`src/render/url.ts`), so
+  the same output works at `user.github.io/CRP7/`, on a custom domain, and opened
+  from disk. There is no base path to configure. A test asserts no root-absolute
+  URLs are ever emitted.
+- **Loading content never throws.** Problems become `Warning`s with a stated
+  fallback. This is what makes the site safe for non-technical editors, and it is
+  covered by tests — please keep it that way.
+- **Escaping goes through `esc()` in `src/html.ts`** and nowhere else.
+- **Dark mode is defined in three places** — light on bare `:root`, dark under
+  both `@media (prefers-color-scheme: dark)` (guarded so an explicit light choice
+  wins) and `:root[data-theme="dark"]`. A test checks all three exist.
+- **Everything interactive is progressive enhancement.** With JavaScript off the
+  banner shows its first image, the nav works, and the gallery shows thumbnails.
+
+### Deployment
+
+Pushing to `main` triggers [`.github/workflows/pages.yml`](.github/workflows/pages.yml),
+which builds and publishes to GitHub Pages. `docs/` is generated and gitignored.
+
+One-time setup: **Settings → Pages → Build and deployment → GitHub Actions**.

@@ -1,0 +1,3 @@
+title: Publications on PubMed
+url: https://pubmed.ncbi.nlm.nih.gov/?term=Harikumar+KB%5BAuthor%5D
+description: The complete, continuously updated publication list from the National Library of Medicine.

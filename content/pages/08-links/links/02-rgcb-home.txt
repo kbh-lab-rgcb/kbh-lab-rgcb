@@ -1,0 +1,4 @@
+title: BRIC-Rajiv Gandhi Centre for Biotechnology
+url: https://rgcb.res.in/
+description: The parent institute — an autonomous national institute under the Department of Biotechnology, Government of India.
+featured: yes

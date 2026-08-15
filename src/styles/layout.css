@@ -1,0 +1,465 @@
+/* Page shell: header, navigation, banner, section rhythm, footer. */
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.container-narrow {
+  max-width: var(--container-narrow);
+}
+
+main {
+  flex: 1;
+}
+
+/* ---------------------------------------------------------------- Header */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-header__inner {
+  min-height: var(--header-height);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-right: auto;
+  padding-block: var(--space-2);
+}
+
+.brand:hover {
+  color: var(--text);
+}
+
+.brand__mark {
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: var(--accent-contrast);
+  display: grid;
+  place-items: center;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.brand__text {
+  display: grid;
+  line-height: 1.2;
+}
+
+.brand__name {
+  font-size: var(--text-base);
+}
+
+.brand__sub {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.nav__link {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  font-weight: 550;
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition);
+}
+
+.nav__link:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.nav__link[aria-current="page"] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.icon-button {
+  flex: none;
+  width: 2.375rem;
+  height: 2.375rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.icon-button:hover {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.icon-button svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+/* The theme button holds both icons and swaps which one is shown. */
+.theme-toggle__moon {
+  display: none;
+}
+:root[data-theme="dark"] .theme-toggle__sun {
+  display: none;
+}
+:root[data-theme="dark"] .theme-toggle__moon {
+  display: block;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle__sun {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .theme-toggle__moon {
+    display: block;
+  }
+}
+
+.nav-toggle {
+  display: none;
+}
+
+/* ------------------------------------------------------------ Mobile nav */
+
+@media (max-width: 860px) {
+  .nav-toggle {
+    display: grid;
+  }
+
+  .nav {
+    position: fixed;
+    inset: var(--header-height) 0 auto 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: var(--space-3) var(--gutter) var(--space-5);
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-8px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+    max-height: calc(100vh - var(--header-height));
+    overflow-y: auto;
+  }
+
+  .nav[data-open="true"] {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .nav__link {
+    padding: var(--space-3) var(--space-3);
+    font-size: var(--text-base);
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+  }
+
+  .nav__link:last-child {
+    border-bottom: 0;
+  }
+}
+
+/* ---------------------------------------------------------------- Banner */
+
+.banner {
+  position: relative;
+  isolation: isolate;
+  background: var(--bg-sunken);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.banner__media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+/* No banner image: a quiet gradient rather than a broken-looking gap. */
+.banner--empty .banner__media {
+  background:
+    radial-gradient(60% 120% at 15% 0%, var(--accent-soft), transparent 70%),
+    linear-gradient(160deg, var(--bg-sunken), var(--surface));
+}
+
+/*
+ * Without JS the first slide must still be visible, so slides default to
+ * opacity 0 with the first one shown. Once the script takes over it sets
+ * `data-ready` on the container, and the higher-specificity rules below hand
+ * control to `data-active`. Ordering here is load-bearing.
+ */
+.banner__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity var(--transition-slow);
+}
+
+.banner__slide:first-child {
+  opacity: 1;
+}
+
+.banner__media[data-ready="true"] .banner__slide {
+  opacity: 0;
+}
+
+.banner__media[data-ready="true"] .banner__slide[data-active="true"] {
+  opacity: 1;
+}
+
+.banner__slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    100deg,
+    rgba(6, 22, 33, 0.86) 0%,
+    rgba(6, 22, 33, 0.66) 45%,
+    rgba(6, 22, 33, 0.34) 100%
+  );
+}
+
+.banner__inner {
+  position: relative;
+  padding-block: clamp(var(--space-7), 9vw, var(--space-9));
+  display: grid;
+  gap: var(--space-4);
+  max-width: 44rem;
+}
+
+.banner--image .banner__inner,
+.banner--image .banner__eyebrow {
+  color: #f4fafd;
+}
+
+.banner--image .banner__inner h1 {
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
+}
+
+.banner__eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.banner--image .banner__eyebrow {
+  color: #7fe4f7;
+}
+
+.banner__lead {
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+  max-width: 40rem;
+}
+
+.banner--image .banner__lead {
+  color: rgba(244, 250, 253, 0.88);
+}
+
+.banner--tall .banner__inner {
+  padding-block: clamp(var(--space-8), 13vw, 9rem);
+  min-height: 32vh;
+  align-content: center;
+}
+
+/* Carousel controls only exist when there are 2+ images. */
+.banner__controls {
+  position: absolute;
+  right: var(--gutter);
+  bottom: var(--space-5);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.banner__arrow {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-full);
+  background: rgba(6, 22, 33, 0.45);
+  color: #fff;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: background var(--transition);
+}
+
+.banner__arrow:hover {
+  background: rgba(6, 22, 33, 0.75);
+}
+
+.banner__dots {
+  display: flex;
+  gap: var(--space-2);
+  padding-inline: var(--space-2);
+}
+
+.banner__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+
+.banner__dot[aria-current="true"] {
+  background: #fff;
+  transform: scale(1.35);
+}
+
+@media (max-width: 640px) {
+  .banner__controls {
+    left: var(--gutter);
+    right: auto;
+    bottom: var(--space-4);
+  }
+}
+
+/* --------------------------------------------------------------- Sections */
+
+.section {
+  padding-block: clamp(var(--space-7), 7vw, var(--space-9));
+}
+
+.section + .section {
+  padding-top: 0;
+}
+
+.section--sunken {
+  background: var(--bg-sunken);
+  border-block: 1px solid var(--border);
+}
+
+.section--sunken + .section {
+  padding-top: clamp(var(--space-7), 7vw, var(--space-9));
+}
+
+.section__head {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  max-width: 46rem;
+}
+
+.section__eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.section__lead {
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+}
+
+/* ---------------------------------------------------------------- Footer */
+
+.site-footer {
+  margin-top: var(--space-8);
+  background: var(--bg-sunken);
+  border-top: 1px solid var(--border);
+  padding-block: var(--space-7) var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.site-footer__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  gap: var(--space-6);
+}
+
+.site-footer h2 {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: var(--space-3);
+}
+
+.site-footer ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.site-footer address {
+  font-style: normal;
+}
+
+.site-footer__bottom {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+}

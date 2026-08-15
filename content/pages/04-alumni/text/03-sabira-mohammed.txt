@@ -1,0 +1,5 @@
+name: Sabira Mohammed
+role: PhD
+year: 2019
+thesis: The role of the SphKs/S1P axis in the innate immune response and autoimmunity
+now: Post-doctoral fellow, University of Oklahoma Medical Center, Oklahoma, USA

@@ -1,0 +1,3 @@
+title: PhD programme
+url: https://rgcb.res.in/phd-programme
+description: Admissions, eligibility and the application calendar for doctoral study at BRIC-RGCB.

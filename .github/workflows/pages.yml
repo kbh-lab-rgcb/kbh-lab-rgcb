@@ -1,4 +1,8 @@
-name: Publish lab website
+name: Publish the CRP7 website
+
+# Runs on every push to main, including edits made through GitHub's web editor.
+# Problems in content/ are reported as annotations and never fail the run — see
+# the contract described in src/content/load.ts.
 
 on:
   push:
@@ -16,20 +20,44 @@ concurrency:
 
 jobs:
   build-and-deploy:
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm run build:github
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Cache the resized images so a text-only edit does not re-encode photos.
+      - name: Restore image cache
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: images-${{ hashFiles('content/**/*.jpg', 'content/**/*.jpeg', 'content/**/*.png', 'content/**/*.webp') }}
+          restore-keys: images-
+
+      - name: Build site
+        run: npm run build
+
+      - name: Check types
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm test
+
       - uses: actions/configure-pages@v5
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs
-      - name: Deploy
+
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

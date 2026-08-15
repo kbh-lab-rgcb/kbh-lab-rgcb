@@ -1,5 +1,0 @@
-name: Alina Reyes
-role: PhD Candidate
-email: alina.reyes@example.edu
-
-Alina builds interpretable models of cell-state transitions and open tools that help experimentalists explore complex datasets.

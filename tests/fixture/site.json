@@ -1,0 +1,10 @@
+{
+  "name": "Fixture Lab",
+  "shortName": "FIX",
+  "tagline": "A fixture used by the test suite.",
+  "institute": "Test Institute",
+  "address": ["Somewhere"],
+  "emails": [{ "label": "Lab", "value": "lab@example.org" }],
+  "phones": [],
+  "labAuthors": ["Harikumar"]
+}

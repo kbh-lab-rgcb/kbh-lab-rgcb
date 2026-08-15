@@ -1,0 +1,4 @@
+name: V. Sneha Suresh Babu
+role: PhD Student
+
+Sneha works on sphingolipid signalling in inflammation and cancer.

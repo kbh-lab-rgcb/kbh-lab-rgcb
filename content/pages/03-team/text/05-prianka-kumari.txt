@@ -1,0 +1,4 @@
+name: Prianka Kumari
+role: PhD Student
+
+Prianka works on sphingolipid signalling in inflammation and cancer.

@@ -1,0 +1,5 @@
+name: Yadu Vijayan
+role: PhD
+year: 2024
+thesis: Elucidation of the role of acid ceramidase in inflammation-driven colorectal cancer
+now: Post-doctoral fellow, Virginia Commonwealth University (VCU Health), Richmond, VA, USA

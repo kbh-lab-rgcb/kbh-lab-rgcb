@@ -1,0 +1,4 @@
+title: Dr. K.B. Harikumar at BRIC-RGCB
+url: https://rgcb.res.in/harikumar
+description: The official institute profile page for the principal investigator.
+featured: yes

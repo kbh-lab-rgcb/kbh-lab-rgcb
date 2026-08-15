@@ -1,8 +1,39 @@
 {
-  "name": "The Signal & Structure Laboratory",
-  "shortName": "S + S Lab",
-  "eyebrow": "Research at the edge of the observable",
-  "title": "Seeing life in systems.",
-  "location": "Department of Biological Sciences · Your University",
-  "email": "hello@example.edu"
+  "name": "Cancer Research Programme 7",
+  "shortName": "CRP7",
+  "tagline": "Cellular dynamics of resolving inflammation, with special reference to the role of sphingolipids.",
+  "description": "The laboratory of Dr. K.B. Harikumar at BRIC-Rajiv Gandhi Centre for Biotechnology studies how inflammation is resolved, and how sphingolipid signalling shapes immunity and cancer.",
+  "institute": "BRIC-RGCB, Thiruvananthapuram",
+  "pi": {
+    "name": "Dr. K.B. Harikumar",
+    "title": "Scientist F",
+    "email": "harikumar@rgcb.res.in"
+  },
+  "address": [
+    "Cancer Research Programme",
+    "BRIC-Rajiv Gandhi Centre for Biotechnology",
+    "Thycaud Post, Poojappura",
+    "Thiruvananthapuram 695 014",
+    "Kerala, India"
+  ],
+  "phones": [
+    { "label": "Direct", "value": "+91-471-2529596" },
+    { "label": "Laboratory", "value": "+91-471-2529595" },
+    { "label": "Institute", "value": "+91-471-2529400" }
+  ],
+  "emails": [
+    { "label": "Principal investigator", "value": "harikumar@rgcb.res.in" },
+    { "label": "Institute", "value": "info@rgcb.res.in" }
+  ],
+  "labAuthors": [
+    "Harikumar",
+    "Viswanathan",
+    "Vijayan",
+    "Mohammed",
+    "Lankadasari",
+    "Aparna",
+    "Namitha",
+    "Sreeharshan"
+  ],
+  "footerNote": "Edit this site by changing files in the content folder."
 }

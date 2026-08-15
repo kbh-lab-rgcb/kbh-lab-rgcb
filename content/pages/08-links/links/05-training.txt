@@ -1,0 +1,4 @@
+title: Training programmes
+url: https://rgcb.res.in/training
+description: Hands-on workshops and short-term training courses run by BRIC-RGCB.
+featured: yes
