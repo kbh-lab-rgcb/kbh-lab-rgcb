@@ -82,8 +82,28 @@
   --gutter: clamp(1.125rem, 4vw, 3rem);
   --header-height: 4rem;
 
-  --transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 420ms cubic-bezier(0.4, 0, 0.2, 1);
+  /*
+   * Motion. Three easings and three durations, used everywhere, so unrelated
+   * parts of the page feel like they belong to the same object.
+   *   --ease      symmetric, for a state that toggles (hover on, hover off)
+   *   --ease-out  fast start then a long settle, for things arriving
+   *   --ease-in   the mirror, for things leaving
+   */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+
+  --transition-fast: 130ms var(--ease);
+  --transition: 220ms var(--ease);
+  --transition-slow: 480ms var(--ease-out);
+
+  /*
+   * How long each banner image is held, and how long the crossfade between two
+   * of them takes. `main.ts` reads --carousel-hold rather than keeping its own
+   * copy, so the dot progress bar can never drift out of step with the advance.
+   */
+  --carousel-hold: 6000ms;
+  --carousel-fade: 1100ms;
 }
 
 @media (prefers-color-scheme: dark) {
