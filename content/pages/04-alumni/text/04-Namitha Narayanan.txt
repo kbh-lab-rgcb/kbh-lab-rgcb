@@ -1,0 +1,5 @@
+name: Namitha Narayanan
+role: Senior Research Fellow
+year: 2019
+thesis: Mechanistic evaluation of an ayurvedic formulation for treatment of colitis-induced colorectal cancer
+now: MBA in Canada

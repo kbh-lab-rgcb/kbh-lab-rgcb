@@ -1,0 +1,5 @@
+name: Dr. Athira S R
+role: Project Fellow
+year: 2025
+thesis: Ferroptosis induction by Sphingolipid targeting drugs in colorectal adenocarcinoma
+now: Pharmacist (Self-Employed)

@@ -3,10 +3,10 @@ title: External trainees
 # Short-term trainees from other institutions.
 # One person per line, as: Name — College
 #
-# People who did an MSc project here, or worked on a project as an associate or
+# People who did an RGCB-MSc project here, or worked on a project as an associate or
 # fellow, do NOT belong in this list — they get their own card. Add a file in
 # ../text/ instead, with the right `role:` line.
-#
+#THIS IS ONLY FOR EXTERNAL MSC AND TRAINEES
 # Delete the example below and add the real names.
 
-Example Name — Example College, Thiruvananthapuram
+Anagha — Central University of Kerala, Kasaragod, KL, IN

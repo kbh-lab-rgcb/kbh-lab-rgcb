@@ -1,0 +1,5 @@
+name: Jaskirat Sing Sandhu
+role: BRIC-RGCB MSc 
+year: 2019
+thesis: Pancreatic Ductal Adenocarcinoma
+now: PhD in Canada
