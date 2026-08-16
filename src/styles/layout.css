@@ -314,8 +314,13 @@ main {
  * failed to fill, when in fact there was nothing to fill. Giving the banner a
  * real minimum height is what makes the picture read as a picture.
  */
+/*
+ * Interior pages get a slim band: enough for the image to read as a picture,
+ * not so much that the reader has to scroll past it to reach the page they
+ * actually asked for. Only the home page earns a full hero.
+ */
 .banner--image {
-  min-height: clamp(17rem, 32vw, 25rem);
+  min-height: clamp(11rem, 19vw, 15rem);
 }
 
 .banner--image.banner--tall {
@@ -414,7 +419,8 @@ main {
 
 .banner__inner {
   position: relative;
-  padding-block: clamp(var(--space-7), 9vw, var(--space-9));
+  /* Home overrides this below; interior pages keep the band tight. */
+  padding-block: clamp(var(--space-6), 5.5vw, var(--space-7));
   display: grid;
   gap: var(--space-4);
   max-width: 44rem;
