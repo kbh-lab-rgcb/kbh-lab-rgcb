@@ -31,11 +31,24 @@ import type { Img, Warning } from "./types.ts";
 const WIDTHS = [480, 800, 1200, 1800, 2400];
 
 /** Formats we resize. Anything else is copied through as-is. */
-const RASTER = new Set([".jpg", ".jpeg", ".png", ".webp"]);
+const RASTER = new Set([".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff"]);
 /** Formats we accept but never touch (vector, animated). */
 const PASSTHROUGH = new Set([".svg", ".gif", ".avif"]);
 
 export const IMAGE_EXTENSIONS = [...RASTER, ...PASSTHROUGH];
+
+/**
+ * What an input format is published as.
+ *
+ * TIFF is the only one that changes. Microscopes and slide scanners produce it
+ * by the gigabyte and people quite reasonably drop those files straight into a
+ * folder — but no browser can display TIFF, so publishing one unchanged means
+ * publishing a broken image. It is re-encoded as JPEG on the way out instead.
+ * Everything else keeps its own format.
+ */
+function outputExtension(ext: string): string {
+  return ext === ".tif" || ext === ".tiff" ? ".jpg" : ext;
+}
 
 export function isImage(filename: string): boolean {
   return IMAGE_EXTENSIONS.includes(extname(filename).toLowerCase());
@@ -137,18 +150,25 @@ export async function createImagePipeline(options: {
     const targets = WIDTHS.filter((width) => width < originalWidth);
     if (originalWidth > 0) targets.push(Math.min(originalWidth, WIDTHS[WIDTHS.length - 1]!));
 
+    const outExt = outputExtension(ext);
+
     const files: { width: number; name: string }[] = [];
     for (const width of [...new Set(targets)].sort((a, b) => a - b)) {
-      const name = `${base}-${width}${ext}`;
+      const name = `${base}-${width}${outExt}`;
       const pipeline = sharp(bytes, { failOn: "none" })
         .rotate() // Honour EXIF orientation, or phone photos arrive sideways.
         .resize({ width, withoutEnlargement: true });
       const encoded =
-        ext === ".png"
+        outExt === ".png"
           ? await pipeline.png({ compressionLevel: 9, palette: true }).toBuffer()
-          : ext === ".webp"
+          : outExt === ".webp"
             ? await pipeline.webp({ quality: 82 }).toBuffer()
-            : await pipeline.jpeg({ quality: 82, mozjpeg: true, progressive: true }).toBuffer();
+            : await pipeline
+                // JPEG has no alpha. A transparent TIFF would otherwise come
+                // out with black behind it rather than white.
+                .flatten({ background: "#ffffff" })
+                .jpeg({ quality: 82, mozjpeg: true, progressive: true })
+                .toBuffer();
       await writeFile(join(cacheDir, name), encoded);
       files.push({ width, name });
     }

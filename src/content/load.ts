@@ -11,7 +11,7 @@
 import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
-import { createImagePipeline, listImages } from "./images.ts";
+import { createImagePipeline, IMAGE_EXTENSIONS, listImages } from "./images.ts";
 import {
   excerpt,
   field,
@@ -190,10 +190,31 @@ function embeddedBitmapWidth(svg: string): number | null {
   return Number.isFinite(width) && width > 0 ? width : null;
 }
 
+/** Files that belong in a banner folder without being banners. */
+const NOT_A_BANNER = /^(readme\.md|\.|.*\.bak$)/i;
+
 async function loadBanners(ctx: Ctx): Promise<Img[]> {
   const dir = join(ctx.pageDir, "banner");
   const files = await listImages(dir);
   const banners: Img[] = [];
+
+  /*
+   * Say something about files that were dropped here and quietly ignored.
+   * "I added the picture and nothing happened" is the worst thing that can
+   * happen to an editor who cannot read a build log, so an unusable format is
+   * named rather than skipped in silence.
+   */
+  if (existsSync(dir)) {
+    const everything = await readdir(dir).catch(() => [] as string[]);
+    for (const name of everything) {
+      if (files.includes(name) || NOT_A_BANNER.test(name)) continue;
+      ctx.warnings.push({
+        file: `${ctx.relDir}/banner/${name}`,
+        message: `This file is not an image format the site can publish, so it was skipped.`,
+        fallback: `Save it as .jpg and add that instead. Accepted: ${IMAGE_EXTENSIONS.join(" ")}`,
+      });
+    }
+  }
 
   for (const file of files) {
     const path = join(dir, file);
