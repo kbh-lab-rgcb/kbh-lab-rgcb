@@ -47,6 +47,36 @@ biography — wherever you happen to be typing is fine.
 The number at the front of the filename. `01-` is first. The principal
 investigator is shown separately at the top automatically.
 
+## The sections on the team page
+
+**The team page sorts itself from your `role:` line.** You do not maintain a
+list anywhere — write the right role and the person lands in the right section.
+
+| Section | Roles that go there |
+| --- | --- |
+| Research scholars | PhD student, doctoral, JRF, SRF, research fellow, project associate, postdoc |
+| Technical staff | Technical manager, technical officer, technical assistant, technician |
+| Project staff | Project assistant |
+| Laboratory support | Lab assistant, lab attendant, support staff |
+
+Note that **Project Assistant** and **Project Associate** are different
+sections. They read almost the same, so check which one you have typed.
+
+The numbers on the filenames still set the order *within* a section.
+
+The **home page shows only the research scholars.** Everyone appears in full on
+the team page.
+
+If a role does not match any row above, that person is still shown — in a final
+section called `Team` — so nobody ever disappears. To place them deliberately,
+add a `group:` line with the section name:
+
+```text
+name: Someone
+role: Visiting Fellow
+group: Research scholars
+```
+
 ## Removing someone
 
 Delete both their files.

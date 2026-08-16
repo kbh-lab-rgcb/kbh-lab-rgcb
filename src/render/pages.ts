@@ -33,6 +33,86 @@ function isLead(member: Member): boolean {
   );
 }
 
+/* ------------------------------------------------------------ Team groups */
+
+/**
+ * How the team page is divided, in the order the sections appear.
+ *
+ * Membership is read from each person's `role:` line, so nobody has to maintain
+ * a second list that can drift out of step with the cards themselves. Somebody
+ * whose role does not match anything here still appears — under `Team` at the
+ * end — because a person quietly vanishing from the page is far worse than a
+ * person filed under a vague heading.
+ *
+ * The patterns are ordered and first match wins, which is what keeps
+ * "Project Assistant" and "Project Associate" apart: they read almost the same
+ * and belong in different sections.
+ */
+type TeamGroup = {
+  id: string;
+  title: string;
+  /** Shown under the heading. Empty means no subtitle. */
+  lead: string;
+  match: RegExp;
+};
+
+const TEAM_GROUPS: TeamGroup[] = [
+  {
+    id: "scholars",
+    title: "Research scholars",
+    lead: "Doctoral students and research fellows.",
+    match:
+      /ph\.?\s?d|doctoral|research scholar|\bjrf\b|\bsrf\b|junior research fellow|senior research fellow|project associate|research fellow|postdoc|post-doctoral/i,
+  },
+  {
+    id: "technical",
+    title: "Technical staff",
+    lead: "",
+    match: /technical manager|technical officer|technical assistant|technician/i,
+  },
+  {
+    id: "project",
+    title: "Project staff",
+    lead: "",
+    match: /project assistant|project staff/i,
+  },
+  {
+    id: "support",
+    title: "Laboratory support",
+    lead: "",
+    match: /lab(oratory)?\s*(assistant|attendant|helper)|support staff/i,
+  },
+];
+
+const UNGROUPED: TeamGroup = { id: "other", title: "Team", lead: "", match: /(?:)/ };
+
+function groupFor(member: Member): TeamGroup {
+  // An explicit `group:` line always wins, for the roles no pattern can guess.
+  const explicit = member.fields.group?.trim().toLowerCase();
+  if (explicit) {
+    const named = TEAM_GROUPS.find(
+      (group) => group.id === explicit || group.title.toLowerCase() === explicit,
+    );
+    if (named) return named;
+  }
+  return TEAM_GROUPS.find((group) => group.match.test(member.role)) ?? UNGROUPED;
+}
+
+/** Members by group, in `TEAM_GROUPS` order, skipping groups nobody is in. */
+function groupTeam(members: Member[]): { group: TeamGroup; people: Member[] }[] {
+  return [...TEAM_GROUPS, UNGROUPED]
+    .map((group) => ({
+      group,
+      people: members.filter((member) => groupFor(member) === group),
+    }))
+    .filter((section) => section.people.length > 0);
+}
+
+/** The people the home page previews: doctoral students and fellows. */
+function scholars(members: Member[]): Member[] {
+  return members.filter((member) => !isLead(member) && groupFor(member).id === "scholars");
+}
+
 function sectionsBlock(page: Page, depth: number): string {
   if (page.sections.length === 0) return "";
   return page.sections.map((section) => sectionBlock(section, depth, true)).join("");
@@ -59,6 +139,7 @@ function renderHome(site: Site, page: Page, depth: number): string {
   const linksPage = pageOf(site, "links");
 
   const members = teamPage?.members ?? [];
+  const preview = scholars(members).slice(0, 8);
   const lead = members.find(isLead);
   const recent = publicationsPage?.publicationYears[0];
   const featured = (linksPage?.links ?? []).filter((link) => link.featured);
@@ -128,16 +209,14 @@ function renderHome(site: Site, page: Page, depth: number): string {
         ])
       : "",
 
-    members.length > 0 && teamPage
+    // The home page previews the research scholars only. Technical, project and
+    // support staff are listed in full on the team page rather than here.
+    preview.length > 0 && teamPage
       ? join([
           '<section class="section section--sunken"><div class="container">',
           sectionHead({ eyebrow: "The lab", title: "Who you will work with" }),
           '<div class="grid grid--people">',
-          members
-            .filter((member) => !isLead(member))
-            .slice(0, 8)
-            .map((member, index) => personCard(member, depth, index))
-            .join(""),
+          preview.map((member, index) => personCard(member, depth, index)).join(""),
           "</div>",
           `<p class="button-row"><a class="button button--ghost" href="${esc(hrefTo(depth, teamPage))}">Full team ${icons.arrowRight}</a></p>`,
           "</div></section>",
@@ -173,6 +252,7 @@ function renderSectionsPage(page: Page, depth: number, folder: string): string {
 function renderTeam(page: Page, depth: number, folder: string): string {
   const lead = page.members.find(isLead);
   const rest = page.members.filter((member) => member !== lead);
+  const sections = groupTeam(rest);
 
   return join([
     introBlock(page, depth),
@@ -186,19 +266,35 @@ function renderTeam(page: Page, depth: number, folder: string): string {
         ])
       : "",
 
-    '<section class="section"><div class="container">',
-    rest.length > 0
+    // One section per group. Alternating the sunken background keeps the
+    // divisions legible on a long page without adding rules between them.
+    sections
+      .map((section, index) =>
+        join([
+          `<section class="section${index % 2 === 0 ? " section--sunken" : ""}"><div class="container">`,
+          sectionHead({
+            eyebrow: index === 0 ? "Members" : "",
+            title: section.group.title,
+            lead: section.group.lead,
+          }),
+          '<div class="grid grid--people">',
+          section.people.map((member, i) => personCard(member, depth, i)).join(""),
+          "</div>",
+          "</div></section>",
+        ]),
+      )
+      .join(""),
+
+    page.members.length === 0
       ? join([
-          sectionHead({ eyebrow: "Members", title: "Researchers and students" }),
-          `<div class="grid grid--people">${rest.map((member, index) => personCard(member, depth, index)).join("")}</div>`,
-        ])
-      : page.members.length === 0
-        ? emptyNote(
+          '<section class="section"><div class="container">',
+          emptyNote(
             "Add a person by putting a photo and a matching text file in",
             `${folder}/photos/ and ${folder}/text/`,
-          )
-        : "",
-    "</div></section>",
+          ),
+          "</div></section>",
+        ])
+      : "",
   ]);
 }
 
