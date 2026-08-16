@@ -1,10 +1,22 @@
 # Name lists
 
-**For the people who pass through the lab in tens** — visiting trainees, MSc
-project students — where a card each would swamp the page.
+**Only for short-term trainees from other institutions** — people who came for
+a few weeks, where a card each would swamp the page.
 
 Each file here becomes one collapsible list at the bottom of the alumni page.
 Two files sit side by side on a wide screen; more simply wrap.
+
+## Who does NOT go here
+
+| Person | Where they go |
+| --- | --- |
+| MSc student who did their final project here | a card — `../text/`, `role: MSc` |
+| Project associate, SRF or JRF who worked here | a card — `../text/`, `role: Project Associate` |
+| PhD student | a card — `../text/`, `role: PhD` |
+| Post-doctoral fellow | a card — `../text/`, `role: Post-doctoral Fellow` |
+
+Those four all get their own section of cards on the alumni page, with a photo,
+thesis and where they are now. This folder is for the visitors only.
 
 ## The format
 

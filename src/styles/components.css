@@ -695,12 +695,6 @@
   color: var(--accent);
 }
 
-.stat__label {
-  font-size: var(--text-sm);
-  line-height: var(--leading-snug);
-  color: var(--text-muted);
-}
-
 /* ---------------------------------------------------------------- Contact */
 
 .contact-grid {

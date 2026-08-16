@@ -1,6 +1,12 @@
-title: Trainees from other institutions
+title: External trainees
 
+# Short-term trainees from other institutions.
 # One person per line, as: Name — College
-# Delete these examples and add the real names.
+#
+# People who did an MSc project here, or worked on a project as an associate or
+# fellow, do NOT belong in this list — they get their own card. Add a file in
+# ../text/ instead, with the right `role:` line.
+#
+# Delete the example below and add the real names.
 
 Example Name — Example College, Thiruvananthapuram

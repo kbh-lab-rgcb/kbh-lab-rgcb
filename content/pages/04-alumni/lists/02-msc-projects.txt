@@ -1,6 +1,0 @@
-title: MSc projects carried out in the lab
-
-# One person per line, as: Name — College
-# Delete these examples and add the real names.
-
-Example Name — Example College, Kottayam

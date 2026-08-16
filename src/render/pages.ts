@@ -424,15 +424,16 @@ function renderAlumni(page: Page, depth: number, folder: string): string {
       )
       .join(""),
 
-    // The name lists close the page: too many people for a card each, and the
-    // two lists sit side by side so neither dominates.
+    // Short-term visitors close the page as a collapsed list. Everyone who did
+    // an MSc project or held a project post here gets a card in a section
+    // above — only people passing through briefly are folded away.
     page.rosters.length > 0
       ? join([
           '<section class="section"><div class="container">',
           sectionHead({
             eyebrow: "Also through the lab",
-            title: "Trainees and project students",
-            lead: "Open a list to see names and the college each person came from.",
+            title: "Short-term trainees",
+            lead: "Open the list to see names and the college each person came from.",
           }),
           '<div class="roster-grid">',
           page.rosters.map((roster, index) => rosterList(roster, index)).join(""),
