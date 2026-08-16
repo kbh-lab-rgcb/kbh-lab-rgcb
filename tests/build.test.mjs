@@ -148,9 +148,22 @@ test("two banner images render a carousel with dots and arrows", () => {
   assert.equal((gallery.match(/data-dot/g) ?? []).length, 2);
 });
 
-test("the real home page is a carousel of three images", () => {
+/*
+ * Counted against the content rather than against a number written here.
+ *
+ * The lab is told it can drop photos into `content/pages/01-home/banner/` and
+ * that nothing in `content/` can break the build — so a test that pins the real
+ * site to exactly three banners contradicts the promise the site is built on,
+ * and goes red the first time somebody adds a fourth. The invariant worth
+ * holding is that the home banner is a carousel with one dot per image.
+ */
+test("the real home page is a carousel with one dot per banner image", () => {
+  const home = realResult.site.pages.find((page) => page.kind === "home");
+  assert.ok(home, "the home page should exist");
+  assert.ok(home.banners.length > 1, "the home banner folder should hold a slideshow");
+
   assert.match(real["index.html"], /data-carousel/);
-  assert.equal((real["index.html"].match(/data-dot/g) ?? []).length, 3);
+  assert.equal((real["index.html"].match(/data-dot/g) ?? []).length, home.banners.length);
 });
 
 /* -------------------------------------------- Only-if-added: profiles */
