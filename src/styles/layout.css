@@ -25,6 +25,45 @@ main {
   -webkit-backdrop-filter: saturate(180%) blur(12px);
   backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--border);
+  transition: background var(--transition), box-shadow var(--transition),
+    border-color var(--transition);
+
+  /*
+   * Naming the header means the browser treats it as the same element on both
+   * sides of a page transition, so it holds still while the page beneath it
+   * changes instead of crossfading with everything else.
+   */
+  view-transition-name: site-header;
+}
+
+/* Lifts off the page once there is content scrolled underneath it. */
+.site-header[data-scrolled="true"] {
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  box-shadow: var(--shadow-md);
+  border-bottom-color: transparent;
+}
+
+/*
+ * How far down the page the reader is. Sits on the header's bottom edge, is
+ * painted from a CSS variable that `main.ts` updates, and is invisible until
+ * there is something to report.
+ */
+.scroll-progress {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  width: 100%;
+  transform: scaleX(var(--scroll-progress, 0));
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--accent), var(--highlight));
+  opacity: 0;
+  transition: opacity var(--transition);
+  pointer-events: none;
+}
+
+.site-header[data-scrolled="true"] .scroll-progress {
+  opacity: 1;
 }
 
 .site-header__inner {
@@ -62,6 +101,12 @@ main {
   font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: -0.03em;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.brand:hover .brand__mark {
+  transform: scale(1.06) rotate(-3deg);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .brand__text {
@@ -87,6 +132,7 @@ main {
 }
 
 .nav__link {
+  position: relative;
   display: block;
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius);
@@ -98,14 +144,44 @@ main {
   transition: background var(--transition), color var(--transition);
 }
 
+/*
+ * The underline is a scaled pseudo-element rather than a real border, so it
+ * grows out from the middle instead of the box changing size — the text never
+ * moves.
+ */
+.nav__link::after {
+  content: "";
+  position: absolute;
+  left: var(--space-3);
+  right: var(--space-3);
+  bottom: 0.3rem;
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: 50% 50%;
+  opacity: 0;
+  transition: transform var(--transition), opacity var(--transition);
+}
+
 .nav__link:hover {
   background: var(--surface);
   color: var(--text);
 }
 
+.nav__link:hover::after {
+  transform: scaleX(1);
+  opacity: 0.55;
+}
+
 .nav__link[aria-current="page"] {
   color: var(--accent);
   background: var(--accent-soft);
+}
+
+.nav__link[aria-current="page"]::after {
+  transform: scaleX(1);
+  opacity: 1;
 }
 
 .header__actions {
@@ -125,18 +201,30 @@ main {
   background: var(--surface-raised);
   color: var(--text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition: background var(--transition), color var(--transition),
+    border-color var(--transition), transform var(--transition-fast);
 }
 
 .icon-button:hover {
   background: var(--surface);
-  color: var(--text);
-  border-color: var(--border-strong);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.icon-button:active {
+  transform: translateY(0) scale(0.96);
 }
 
 .icon-button svg {
   width: 1.125rem;
   height: 1.125rem;
+  transition: transform var(--transition-slow);
+}
+
+/* The sun and moon turn as they swap, which reads as one object rotating. */
+.icon-button:hover svg {
+  transform: rotate(18deg);
 }
 
 /* The theme button holds both icons and swaps which one is shown. */
@@ -210,9 +298,28 @@ main {
 .banner {
   position: relative;
   isolation: isolate;
+  display: grid;
+  align-content: center;
   background: var(--bg-sunken);
   border-bottom: 1px solid var(--border);
   overflow: hidden;
+}
+
+/*
+ * A banner carrying an image needs a height of its own.
+ *
+ * Left to itself the box is only as tall as the heading inside it — a 200px
+ * stripe — and because the image is `object-fit: cover` the artwork gets
+ * cropped to a thin horizontal band through its middle. It looks like the image
+ * failed to fill, when in fact there was nothing to fill. Giving the banner a
+ * real minimum height is what makes the picture read as a picture.
+ */
+.banner--image {
+  min-height: clamp(17rem, 32vw, 25rem);
+}
+
+.banner--image.banner--tall {
+  min-height: clamp(26rem, 60vh, 40rem);
 }
 
 .banner__media {
@@ -238,7 +345,7 @@ main {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity var(--transition-slow);
+  transition: opacity var(--carousel-fade) var(--ease);
 }
 
 .banner__slide:first-child {
@@ -253,10 +360,44 @@ main {
   opacity: 1;
 }
 
+/*
+ * `cover` fills the box and crops the overflow, which is what a banner wants.
+ * The min/max pair overrides the intrinsic width and height attributes on the
+ * tag, so an image that reports an odd intrinsic size — an SVG exported from
+ * Office declares itself 15x9 — still covers the whole banner.
+ */
 .banner__slide img {
   width: 100%;
   height: 100%;
+  min-width: 100%;
+  min-height: 100%;
   object-fit: cover;
+  object-position: center;
+}
+
+/*
+ * A very slow push in on whichever image is showing. Restarted by the browser
+ * each time `data-active` moves, so every image gets the same drift, and it
+ * runs for the hold plus the fade so it is still moving as the next one
+ * arrives — a still frame under a crossfade is what makes a slideshow look
+ * cheap.
+ */
+@keyframes banner-drift {
+  from {
+    transform: scale(1.015);
+  }
+  to {
+    transform: scale(1.075);
+  }
+}
+
+.banner__media[data-ready="true"] .banner__slide[data-active="true"] img {
+  animation: banner-drift calc(var(--carousel-hold) + var(--carousel-fade)) var(--ease) both;
+}
+
+/* Hovering or focusing the banner pauses the advance; the drift pauses with it. */
+.banner[data-paused="true"] .banner__slide[data-active="true"] img {
+  animation-play-state: paused;
 }
 
 .banner__scrim {
@@ -310,10 +451,9 @@ main {
   color: rgba(244, 250, 253, 0.88);
 }
 
+/* The banner itself now supplies the height, so the inner block only pads. */
 .banner--tall .banner__inner {
   padding-block: clamp(var(--space-8), 13vw, 9rem);
-  min-height: 32vh;
-  align-content: center;
 }
 
 /* Carousel controls only exist when there are 2+ images. */
@@ -339,20 +479,29 @@ main {
   cursor: pointer;
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
-  transition: background var(--transition);
+  transition: background var(--transition), transform var(--transition),
+    border-color var(--transition);
 }
 
 .banner__arrow:hover {
-  background: rgba(6, 22, 33, 0.75);
+  background: rgba(6, 22, 33, 0.78);
+  border-color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.08);
+}
+
+.banner__arrow:active {
+  transform: scale(0.94);
 }
 
 .banner__dots {
   display: flex;
+  align-items: center;
   gap: var(--space-2);
   padding-inline: var(--space-2);
 }
 
 .banner__dot {
+  position: relative;
   width: 0.5rem;
   height: 0.5rem;
   padding: 0;
@@ -360,12 +509,60 @@ main {
   border-radius: var(--radius-full);
   background: rgba(255, 255, 255, 0.45);
   cursor: pointer;
-  transition: background var(--transition), transform var(--transition);
+  overflow: hidden;
+  transition: width var(--transition-slow), background var(--transition),
+    transform var(--transition);
 }
 
+.banner__dot:hover {
+  background: rgba(255, 255, 255, 0.85);
+  transform: scale(1.3);
+}
+
+/*
+ * The current image's dot stretches into a track that fills over exactly the
+ * hold time, so the banner tells the reader when it is about to move rather
+ * than surprising them. Both durations come from --carousel-hold, and so does
+ * the timer in main.ts, so the bar cannot drift out of step with the advance.
+ */
 .banner__dot[aria-current="true"] {
+  width: 2.25rem;
+  background: rgba(255, 255, 255, 0.32);
+  transform: none;
+}
+
+.banner[data-carousel-ready="true"] .banner__dot[aria-current="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background: #fff;
-  transform: scale(1.35);
+  transform-origin: 0 50%;
+  animation: dot-fill var(--carousel-hold) linear both;
+}
+
+@keyframes dot-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.banner[data-paused="true"] .banner__dot[aria-current="true"]::after {
+  animation-play-state: paused;
+}
+
+/*
+ * Reduced motion turns the auto-advance off in main.ts, so a bar counting down
+ * to something that will never happen would be a lie. Show it filled instead.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .banner[data-carousel-ready="true"] .banner__dot[aria-current="true"]::after {
+    animation: none !important;
+    transform: scaleX(1);
+  }
 }
 
 @media (max-width: 640px) {
@@ -446,6 +643,22 @@ main {
   padding: 0;
   display: grid;
   gap: var(--space-2);
+}
+
+/*
+ * Inline-block so the nudge on hover moves the link and nothing else; a
+ * padding change here would reflow the whole column.
+ */
+.site-footer ul a {
+  display: inline-block;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--transition), transform var(--transition);
+}
+
+.site-footer ul a:hover {
+  color: var(--accent);
+  transform: translateX(3px);
 }
 
 .site-footer address {

@@ -20,8 +20,15 @@ import { existsSync } from "node:fs";
 import { extname, join, posix } from "node:path";
 import type { Img, Warning } from "./types.ts";
 
-/** Widths generated for each image, filtered to those below the original. */
-const WIDTHS = [480, 800, 1200, 1800];
+/**
+ * Widths generated for each image, filtered to those below the original.
+ *
+ * 2400 exists for banners: they are served at `sizes="100vw"`, so on a wide
+ * high-density screen the browser wants roughly twice the CSS width and would
+ * otherwise have to upscale the 1800 variant. Only sources big enough to supply
+ * it get one, so nothing is invented and small images cost nothing.
+ */
+const WIDTHS = [480, 800, 1200, 1800, 2400];
 
 /** Formats we resize. Anything else is copied through as-is. */
 const RASTER = new Set([".jpg", ".jpeg", ".png", ".webp"]);

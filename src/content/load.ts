@@ -161,14 +161,74 @@ type Ctx = {
   warnings: Warning[];
 };
 
+/**
+ * Below this, a banner is visibly soft.
+ *
+ * A banner is stretched the full width of the window, so it is the one place on
+ * the site where a small image cannot hide. The usual culprit is a picture
+ * pasted into Word or PowerPoint and exported as SVG: the result is a thumbnail
+ * wrapped in a vector shell, and no amount of CSS can put the detail back.
+ */
+const BANNER_MIN_WIDTH = 1200;
+
+/**
+ * Spots a photo that was pasted into Word or PowerPoint and exported as SVG.
+ *
+ * That export is not a vector drawing. It is a small bitmap wrapped in an SVG
+ * shell and blown up by a `transform`, so it looks right in the editor and
+ * turns to mush the moment it is stretched across a banner. Its declared size
+ * is no help either — the shell claims whatever the slide was, and the file
+ * reports as 1600x900 while the actual picture inside it is 32 pixels wide.
+ * Reading the markup is the only way to see the difference.
+ *
+ * @returns the embedded bitmap's width, or null if this is a real vector file.
+ */
+function embeddedBitmapWidth(svg: string): number | null {
+  const tag = svg.match(/<image\b[^>]*>/i)?.[0];
+  if (!tag || !/href="data:image\//i.test(tag)) return null;
+  const width = Number(tag.match(/\bwidth="(\d+)"/i)?.[1]);
+  return Number.isFinite(width) && width > 0 ? width : null;
+}
+
 async function loadBanners(ctx: Ctx): Promise<Img[]> {
   const dir = join(ctx.pageDir, "banner");
   const files = await listImages(dir);
   const banners: Img[] = [];
+
   for (const file of files) {
-    const image = await ctx.images.process(join(dir, file), `${ctx.slug}`, "");
-    if (image) banners.push(image);
+    const path = join(dir, file);
+    const image = await ctx.images.process(path, `${ctx.slug}`, "");
+    if (!image) continue;
+
+    // Published either way — a soft banner is still a banner. The editor just
+    // gets told why it looks the way it does, and what to do about it.
+    const advice =
+      `Save the original photo as a .jpg at least ${BANNER_MIN_WIDTH}px wide and ` +
+      `put that in the banner folder instead.`;
+
+    if (extname(file).toLowerCase() === ".svg") {
+      const raw = await readFile(path, "utf8").catch(() => "");
+      const bitmap = embeddedBitmapWidth(raw);
+      if (bitmap !== null && bitmap < BANNER_MIN_WIDTH) {
+        ctx.warnings.push({
+          file: `${ctx.relDir}/banner/${file}`,
+          message:
+            `This looks like a photo exported to SVG from Word or PowerPoint: the ` +
+            `picture inside it is only ${bitmap} pixels wide, however large the file claims to be.`,
+          fallback: `It is on the site, but the banner will look blurry. ${advice}`,
+        });
+      }
+    } else if (image.width > 0 && image.width < BANNER_MIN_WIDTH) {
+      ctx.warnings.push({
+        file: `${ctx.relDir}/banner/${file}`,
+        message: `This banner image is only ${image.width}×${image.height} pixels.`,
+        fallback: `It is on the site, but stretched across the banner it will look blurry. ${advice}`,
+      });
+    }
+
+    banners.push(image);
   }
+
   return banners;
 }
 

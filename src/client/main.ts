@@ -89,6 +89,22 @@ function setupNav(): void {
 
 /* --------------------------------------------------------------- Carousel */
 
+/**
+ * How long each image is held, taken from the `--carousel-hold` token.
+ *
+ * The dot progress bar is a CSS animation of the same duration. Reading the
+ * token here rather than hard-coding 6000 is what stops the bar and the advance
+ * drifting apart the moment somebody retunes the timing in tokens.css.
+ */
+function carouselHold(): number {
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue("--carousel-hold")
+    .trim();
+  const value = parseFloat(raw);
+  if (!Number.isFinite(value) || value <= 0) return 6000;
+  return raw.endsWith("ms") ? value : value * 1000;
+}
+
 function setupCarousel(): void {
   const media = document.querySelector<HTMLElement>("[data-carousel]");
   if (!media) return;
@@ -98,6 +114,7 @@ function setupCarousel(): void {
 
   const dots = [...document.querySelectorAll<HTMLButtonElement>("[data-dot]")];
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const hold = carouselHold();
   let index = 0;
   let timer: number | undefined;
 
@@ -112,23 +129,30 @@ function setupCarousel(): void {
     });
   };
 
+  const root = media.closest<HTMLElement>(".banner") ?? media;
+
   const stop = () => {
     if (timer !== undefined) window.clearInterval(timer);
     timer = undefined;
+    // Freezes the drift on the image and the fill on the dot along with it.
+    root.dataset.paused = "true";
   };
 
   const start = () => {
-    stop();
+    if (timer !== undefined) window.clearInterval(timer);
+    timer = undefined;
+    root.dataset.paused = "false";
     if (reduceMotion.matches) return;
-    timer = window.setInterval(() => show(index + 1), 6000);
+    timer = window.setInterval(() => show(index + 1), hold);
   };
 
   // Hand control to `data-active` now that the script is running.
   media.dataset.ready = "true";
+  // Lets the dots start counting down; without JS they stay plain markers.
+  root.dataset.carouselReady = "true";
   show(0);
   start();
 
-  const root = media.closest(".banner") ?? media;
   root.addEventListener("mouseenter", stop);
   root.addEventListener("mouseleave", start);
   root.addEventListener("focusin", stop);
@@ -244,13 +268,90 @@ function setupLightbox(): void {
   });
 }
 
+/* ---------------------------------------------------------- Scroll reveal */
+
+/**
+ * Reveals `data-reveal` blocks as they are scrolled to.
+ *
+ * Only ever *adds* the visible class. The hidden state comes from CSS gated on
+ * `data-motion`, which the inline head script sets and, if this file never
+ * arrives, takes back again — so a failure here leaves the page fully readable
+ * rather than blank.
+ */
+function setupReveal(): void {
+  if (document.documentElement.dataset.motion !== "on") return;
+
+  const targets = [...document.querySelectorAll<HTMLElement>("[data-reveal]")];
+  if (targets.length === 0) return;
+
+  const revealAll = () => targets.forEach((target) => target.classList.add("is-visible"));
+
+  if (!("IntersectionObserver" in window)) {
+    revealAll();
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target); // Reveal once; this is not a toggle.
+      }
+    },
+    // Fires a little before the block reaches the bottom edge, so the movement
+    // has finished by the time the reader's eye gets there.
+    { rootMargin: "0px 0px -10% 0px", threshold: 0.05 },
+  );
+
+  targets.forEach((target) => observer.observe(target));
+}
+
+/* -------------------------------------------------- Header and scroll bar */
+
+function setupScroll(): void {
+  const header = document.querySelector<HTMLElement>(".site-header");
+  if (!header) return;
+
+  const bar = document.createElement("div");
+  bar.className = "scroll-progress";
+  header.append(bar);
+
+  let queued = false;
+
+  const update = () => {
+    queued = false;
+    const y = window.scrollY;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    header.dataset.scrolled = String(y > 8);
+    header.style.setProperty("--scroll-progress", max > 0 ? String(Math.min(y / max, 1)) : "0");
+  };
+
+  // Coalesced into one read per frame; scroll fires far more often than that.
+  const onScroll = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(update);
+  };
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll, { passive: true });
+  update();
+}
+
 /* ------------------------------------------------------------------ Boot */
 
 function boot(): void {
+  // Tells the head script's failsafe that this file made it, so it leaves the
+  // reveal animations switched on.
+  document.documentElement.dataset.booted = "true";
+
   setupTheme();
   setupNav();
   setupCarousel();
   setupLightbox();
+  setupReveal();
+  setupScroll();
 }
 
 if (document.readyState === "loading") {

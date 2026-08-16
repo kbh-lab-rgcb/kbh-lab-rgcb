@@ -14,6 +14,7 @@ import {
   leadPersonCard,
   linkList,
   personCard,
+  reveal,
   sectionBlock,
   sectionHead,
 } from "./components.ts";
@@ -89,8 +90,8 @@ function renderHome(site: Site, page: Page, depth: number): string {
           '<section class="section"><div class="container"><div class="stats">',
           stats
             .map(
-              (stat) =>
-                `<div class="stat"><p class="stat__value">${esc(stat.value)}</p><p class="stat__label">${esc(stat.label)}</p></div>`,
+              (stat, index) =>
+                `<div class="stat"${reveal(index)}><p class="stat__value">${esc(stat.value)}</p><p class="stat__label">${esc(stat.label)}</p></div>`,
             )
             .join(""),
           "</div></div></section>",
@@ -113,7 +114,7 @@ function renderHome(site: Site, page: Page, depth: number): string {
             eyebrow: "Recent work",
             title: `Publications from ${recent.year}`,
           }),
-          '<ul class="pub-list">',
+          `<ul class="pub-list"${reveal()}>`,
           recent.items
             .slice(0, 4)
             .map(
@@ -135,7 +136,7 @@ function renderHome(site: Site, page: Page, depth: number): string {
           members
             .filter((member) => !isLead(member))
             .slice(0, 8)
-            .map((member) => personCard(member, depth))
+            .map((member, index) => personCard(member, depth, index))
             .join(""),
           "</div>",
           `<p class="button-row"><a class="button button--ghost" href="${esc(hrefTo(depth, teamPage))}">Full team ${icons.arrowRight}</a></p>`,
@@ -148,7 +149,7 @@ function renderHome(site: Site, page: Page, depth: number): string {
           '<section class="section"><div class="container">',
           sectionHead({ eyebrow: "Elsewhere", title: "Institute resources" }),
           '<div class="grid grid--cards">',
-          featured.map(linkCard).join(""),
+          featured.map((link, index) => linkCard(link, index)).join(""),
           "</div></div></section>",
         ])
       : "",
@@ -189,7 +190,7 @@ function renderTeam(page: Page, depth: number, folder: string): string {
     rest.length > 0
       ? join([
           sectionHead({ eyebrow: "Members", title: "Researchers and students" }),
-          `<div class="grid grid--people">${rest.map((member) => personCard(member, depth)).join("")}</div>`,
+          `<div class="grid grid--people">${rest.map((member, index) => personCard(member, depth, index)).join("")}</div>`,
         ])
       : page.members.length === 0
         ? emptyNote(
@@ -208,7 +209,7 @@ function renderAlumni(page: Page, depth: number, folder: string): string {
     introBlock(page, depth),
     '<section class="section"><div class="container">',
     page.members.length > 0
-      ? `<div class="grid grid--people">${page.members.map((member) => alumnusCard(member, depth)).join("")}</div>`
+      ? `<div class="grid grid--people">${page.members.map((member, index) => alumnusCard(member, depth, index)).join("")}</div>`
       : emptyNote("Add an alumnus by putting a text file in", `${folder}/text/`),
     "</div></section>",
   ]);
@@ -230,7 +231,7 @@ function renderPublications(page: Page, depth: number, folder: string): string {
     page.publicationYears
       .map((group) =>
         join([
-          '<div class="pub-year">',
+          `<div class="pub-year"${reveal()}>`,
           `<h2 class="pub-year__label">${esc(group.year)}</h2>`,
           '<ul class="pub-list">',
           group.items
@@ -258,12 +259,13 @@ function renderGallery(page: Page, depth: number, folder: string): string {
       ? join([
           '<div class="gallery">',
           page.gallery
-            .map((item) =>
+            .map((item, index) =>
               join([
                 `<button class="gallery__item" type="button" data-lightbox`,
                 // The lightbox shows the largest variant, not the thumbnail.
                 ` data-full="${esc(rel(depth, item.photo.src))}"`,
-                ` data-caption="${esc(item.caption || item.title)}">`,
+                ` data-caption="${esc(item.caption || item.title)}"`,
+                `${reveal(index)}>`,
                 image(item.photo, depth, {
                   alt: item.caption || item.title,
                   sizes: "(max-width: 600px) 50vw, 14rem",
@@ -293,7 +295,7 @@ function renderContact(site: Site, page: Page, depth: number): string {
 
     config.address.length > 0
       ? join([
-          '<div class="contact-card">',
+          `<div class="contact-card"${reveal(0)}>`,
           `<h3>${icons.pin} Address</h3>`,
           `<address>${config.address.map((line) => esc(line)).join("<br>")}</address>`,
           "</div>",
@@ -302,7 +304,7 @@ function renderContact(site: Site, page: Page, depth: number): string {
 
     config.emails.length > 0
       ? join([
-          '<div class="contact-card">',
+          `<div class="contact-card"${reveal(1)}>`,
           `<h3>${icons.mail} Email</h3><ul>`,
           config.emails
             .map(
@@ -316,7 +318,7 @@ function renderContact(site: Site, page: Page, depth: number): string {
 
     config.phones.length > 0
       ? join([
-          '<div class="contact-card">',
+          `<div class="contact-card"${reveal(2)}>`,
           `<h3>${icons.phone} Phone</h3><ul>`,
           config.phones
             .map(
@@ -336,7 +338,10 @@ function renderContact(site: Site, page: Page, depth: number): string {
 
 /* ------------------------------------------------------------------ Links */
 
-function linkCard(link: { title: string; url: string; description: string }): string {
+function linkCard(
+  link: { title: string; url: string; description: string },
+  index = 0,
+): string {
   let host = "";
   try {
     host = new URL(link.url).hostname.replace(/^www\./, "");
@@ -344,7 +349,7 @@ function linkCard(link: { title: string; url: string; description: string }): st
     host = link.url;
   }
   return join([
-    '<article class="card card--link">',
+    `<article class="card card--link"${reveal(index)}>`,
     `<h3 class="card__title"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer">${esc(link.title)}</a></h3>`,
     link.description ? `<p class="card__body">${esc(link.description)}</p>` : "",
     `<p class="card__meta">${icons.external}<span>${esc(host)}</span></p>`,
@@ -357,7 +362,7 @@ function renderLinks(page: Page, depth: number, folder: string): string {
     introBlock(page, depth),
     '<section class="section"><div class="container">',
     page.links.length > 0
-      ? `<div class="grid grid--cards">${page.links.map(linkCard).join("")}</div>`
+      ? `<div class="grid grid--cards">${page.links.map((link, index) => linkCard(link, index)).join("")}</div>`
       : emptyNote("Add a link by creating a text file in", `${folder}/links/`),
     "</div></section>",
   ]);

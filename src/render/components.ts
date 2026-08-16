@@ -10,6 +10,22 @@ import type { Img, Member, ProfileLink, Section } from "../content/types.ts";
 import { iconForLink } from "./icons.ts";
 import { rel } from "./url.ts";
 
+/**
+ * Marks a block to fade and rise into place as it is scrolled to.
+ *
+ * Emitted at build time rather than added by a script, so the element carries
+ * the marker in the HTML itself and there is no moment where the block is drawn
+ * and then hidden again. What the marker *does* is decided entirely in CSS —
+ * see the `data-motion` gate in base.css.
+ *
+ * `index` staggers a row of siblings. The delay is capped so the last card in a
+ * long grid is not still waiting after the reader has looked away.
+ */
+export function reveal(index = 0): string {
+  const delay = Math.min(Math.max(index, 0), 5) * 70;
+  return delay > 0 ? ` data-reveal style="--reveal-delay:${delay}ms"` : " data-reveal";
+}
+
 /** An `<img>` with srcset, intrinsic size and lazy loading. */
 export function image(
   picture: Img,
@@ -69,7 +85,7 @@ export function sectionHead(options: {
 }): string {
   const tag = options.level === 1 ? "h1" : "h2";
   return join([
-    '<div class="section__head">',
+    `<div class="section__head"${reveal()}>`,
     options.eyebrow ? `<p class="section__eyebrow">${esc(options.eyebrow)}</p>` : "",
     `<${tag}>${esc(options.title)}</${tag}>`,
     options.lead ? `<p class="section__lead">${esc(options.lead)}</p>` : "",
@@ -87,11 +103,11 @@ export function sectionBlock(section: Section, depth: number, showTitle = true):
   ]);
 
   if (!section.figure) {
-    return `<div class="section-block">${prose}</div>`;
+    return `<div class="section-block"${reveal()}>${prose}</div>`;
   }
 
   return join([
-    '<div class="section-block section-block--figure">',
+    `<div class="section-block section-block--figure"${reveal()}>`,
     prose,
     '<figure class="figure">',
     image(section.figure, depth, {
@@ -115,9 +131,9 @@ function portrait(member: Member, depth: number, sizes: string): string {
   ]);
 }
 
-export function personCard(member: Member, depth: number): string {
+export function personCard(member: Member, depth: number, index = 0): string {
   return join([
-    '<article class="person">',
+    `<article class="person"${reveal(index)}>`,
     portrait(member, depth, "(max-width: 640px) 50vw, 15rem"),
     "<div>",
     `<h3 class="person__name">${esc(member.name)}</h3>`,
@@ -136,7 +152,7 @@ export function personCard(member: Member, depth: number): string {
 /** The larger treatment used for the principal investigator. */
 export function leadPersonCard(member: Member, depth: number): string {
   return join([
-    '<article class="person person--lead">',
+    `<article class="person person--lead"${reveal()}>`,
     portrait(member, depth, "(max-width: 640px) 60vw, 15rem"),
     '<div class="person">',
     "<div>",
@@ -155,9 +171,9 @@ export function leadPersonCard(member: Member, depth: number): string {
 }
 
 /** An alumnus: thesis and current position rather than a biography. */
-export function alumnusCard(member: Member, depth: number): string {
+export function alumnusCard(member: Member, depth: number, index = 0): string {
   return join([
-    '<article class="person">',
+    `<article class="person"${reveal(index)}>`,
     portrait(member, depth, "(max-width: 640px) 50vw, 15rem"),
     "<div>",
     `<h3 class="person__name">${esc(member.name)}</h3>`,

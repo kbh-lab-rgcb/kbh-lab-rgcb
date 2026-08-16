@@ -15,13 +15,30 @@
   font-weight: 650;
   text-decoration: none;
   cursor: pointer;
-  transition: background var(--transition), transform var(--transition), border-color var(--transition);
+  transition: background var(--transition), transform var(--transition),
+    border-color var(--transition), box-shadow var(--transition);
 }
 
 .button:hover {
   background: var(--accent-strong);
   color: var(--accent-contrast);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 32%, transparent);
+}
+
+/* Pressing it settles back down, so the click has somewhere to land. */
+.button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Buttons that carry a trailing arrow: the arrow leads the way on hover. */
+.button svg {
+  transition: transform var(--transition);
+}
+
+.button:hover svg {
+  transform: translateX(3px);
 }
 
 .button--ghost {
@@ -32,8 +49,9 @@
 
 .button--ghost:hover {
   background: var(--surface);
-  color: var(--text);
+  color: var(--accent);
   border-color: var(--accent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .button--onImage {
@@ -86,18 +104,37 @@
   flex-direction: column;
   gap: var(--space-3);
   box-shadow: var(--shadow-sm);
-  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+  transition: border-color var(--transition), box-shadow var(--transition),
+    transform var(--transition), background var(--transition);
 }
 
 .card--link:hover {
   border-color: var(--accent);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+/* The domain line is the quietest part of the card, so it is what wakes up. */
+.card--link .card__meta svg {
+  transition: transform var(--transition), color var(--transition);
+}
+
+.card--link:hover .card__meta {
+  color: var(--accent);
+}
+
+.card--link:hover .card__meta svg {
+  transform: translate(2px, -2px);
+}
+
+.card--link:hover .card__title {
+  color: var(--accent);
 }
 
 .card__title {
   font-size: var(--text-lg);
   font-weight: 650;
+  transition: color var(--transition);
 }
 
 .card__title a {
@@ -129,6 +166,7 @@
   align-items: center;
   gap: var(--space-2);
   overflow-wrap: anywhere;
+  transition: color var(--transition);
 }
 
 .card__index {
@@ -146,11 +184,22 @@
   overflow: hidden;
   border: 1px solid var(--border);
   background: var(--surface);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.figure:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
 }
 
 .figure img {
   width: 100%;
   height: auto;
+  transition: transform var(--transition-slow);
+}
+
+.figure:hover img {
+  transform: scale(1.02);
 }
 
 .figure figcaption {
@@ -191,12 +240,31 @@
   overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border);
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .person__portrait img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+/*
+ * Hovering anywhere on the card warms the portrait. The photo scales inside a
+ * fixed frame, so the grid never shifts.
+ */
+.person:hover .person__portrait {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+.person:hover .person__portrait img {
+  transform: scale(1.05);
+}
+
+.person:hover .person__initials {
+  transform: scale(1.06);
 }
 
 /* Fallback shown when nobody has uploaded a photo yet. */
@@ -210,6 +278,7 @@
   letter-spacing: -0.03em;
   color: var(--accent);
   background: linear-gradient(150deg, var(--accent-soft), var(--surface));
+  transition: transform var(--transition-slow);
 }
 
 .person__name {
@@ -285,13 +354,19 @@
   font-size: var(--text-xs);
   font-weight: 600;
   text-decoration: none;
-  transition: border-color var(--transition), color var(--transition), background var(--transition);
+  transition: border-color var(--transition), color var(--transition),
+    background var(--transition), transform var(--transition-fast);
 }
 
 .profile-link:hover {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-soft);
+  transform: translateY(-2px);
+}
+
+.profile-link:active {
+  transform: translateY(0);
 }
 
 .profile-link svg {
@@ -337,10 +412,12 @@
   gap: var(--space-3);
   padding-left: var(--space-4);
   border-left: 2px solid var(--border);
+  transition: border-left-color var(--transition), transform var(--transition);
 }
 
 .pub:hover {
   border-left-color: var(--accent);
+  transform: translateX(3px);
 }
 
 .pub__citation {
@@ -386,6 +463,15 @@
   background: var(--surface);
   cursor: zoom-in;
   aspect-ratio: 4 / 3;
+  transition: border-color var(--transition), box-shadow var(--transition),
+    transform var(--transition);
+}
+
+.gallery__item:hover,
+.gallery__item:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
 }
 
 .gallery__item img {
@@ -395,8 +481,9 @@
   transition: transform var(--transition-slow);
 }
 
-.gallery__item:hover img {
-  transform: scale(1.04);
+.gallery__item:hover img,
+.gallery__item:focus-visible img {
+  transform: scale(1.06);
 }
 
 .gallery__caption {
@@ -409,12 +496,14 @@
   font-size: var(--text-xs);
   text-align: left;
   opacity: 0;
-  transition: opacity var(--transition);
+  transform: translateY(8px);
+  transition: opacity var(--transition), transform var(--transition);
 }
 
 .gallery__item:hover .gallery__caption,
 .gallery__item:focus-visible .gallery__caption {
   opacity: 1;
+  transform: none;
 }
 
 /* --------------------------------------------------------------- Lightbox */
@@ -462,6 +551,18 @@
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
 }
 
+/* The image scales up as the dialog opens rather than simply appearing. */
+@keyframes lightbox-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+.lightbox[open] img {
+  animation: lightbox-in 280ms var(--ease-out) both;
+}
+
 .lightbox__close,
 .lightbox__nav {
   position: absolute;
@@ -476,6 +577,8 @@
   background: rgba(6, 22, 33, 0.55);
   color: #fff;
   cursor: pointer;
+  transition: background var(--transition), transform var(--transition),
+    border-color var(--transition);
 }
 
 .lightbox__nav {
@@ -490,7 +593,20 @@
 
 .lightbox__close:hover,
 .lightbox__nav:hover {
-  background: rgba(6, 22, 33, 0.85);
+  background: rgba(6, 22, 33, 0.9);
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+/*
+ * The nav buttons are already translated to sit on the centre line, so their
+ * hover has to carry that translate through or they would jump to the top.
+ */
+.lightbox__close:hover {
+  transform: scale(1.1);
+}
+
+.lightbox__nav:hover {
+  transform: translateY(-50%) scale(1.1);
 }
 
 /* ------------------------------------------------------------------ Stats */
@@ -506,6 +622,14 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
+  transition: border-color var(--transition), transform var(--transition),
+    box-shadow var(--transition);
+}
+
+.stat:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
 }
 
 .stat__value {
@@ -513,6 +637,12 @@
   font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--accent);
+  transition: transform var(--transition);
+  transform-origin: 0 50%;
+}
+
+.stat:hover .stat__value {
+  transform: scale(1.06);
 }
 
 .stat__label {
@@ -536,6 +666,23 @@
   display: grid;
   gap: var(--space-3);
   align-content: start;
+  transition: border-color var(--transition), transform var(--transition),
+    box-shadow var(--transition);
+}
+
+.contact-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.contact-card h3 svg {
+  transition: transform var(--transition), color var(--transition);
+}
+
+.contact-card:hover h3 svg {
+  color: var(--accent);
+  transform: scale(1.15);
 }
 
 .contact-card h3 {

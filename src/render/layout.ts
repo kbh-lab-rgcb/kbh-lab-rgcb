@@ -9,12 +9,26 @@ import { image } from "./components.ts";
 import { hrefTo, rel } from "./url.ts";
 
 /**
- * Applies the saved theme before first paint.
+ * Applies the saved theme, and switches the scroll-reveal animations on, before
+ * first paint.
  *
- * Inlined in `<head>` on purpose: loaded as an external file it would run after
- * the first paint and the reader would see a flash of the wrong theme.
+ * Inlined in `<head>` on purpose. Loaded as an external file this would run
+ * after the first paint: the reader would see a flash of the wrong theme, and
+ * the blocks that are supposed to fade in would appear and then blink out.
+ *
+ * `data-motion` is what makes those blocks start hidden, so it is only set when
+ * JavaScript is actually running and the reader has not asked for reduced
+ * motion. The timeout is the failsafe for the remaining case — main.js being
+ * blocked, or failing to load — where nothing would ever reveal them again. It
+ * removes the attribute unless main.js has reported in, and the page settles
+ * back to being plain and readable.
  */
-const THEME_BOOT = `(function(){try{var t=localStorage.getItem('crp7-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`;
+const THEME_BOOT =
+  `(function(){var r=document.documentElement;` +
+  `try{var t=localStorage.getItem('crp7-theme');if(t==='light'||t==='dark'){r.setAttribute('data-theme',t);}}catch(e){}` +
+  `try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){r.setAttribute('data-motion','on');` +
+  `setTimeout(function(){if(r.getAttribute('data-booted')!=='true'){r.removeAttribute('data-motion');}},2500);}}catch(e){}` +
+  `})();`;
 
 function banner(page: Page, depth: number, site: Site): string {
   const images = page.banners;

@@ -16,6 +16,42 @@ html {
   scroll-padding-top: calc(var(--header-height) + var(--space-4));
 }
 
+/* ------------------------------------------------ Moving between pages */
+
+/*
+ * Cross-document view transitions: clicking a nav link crossfades to the next
+ * page instead of blanking and repainting. Browsers without the feature (and
+ * Firefox today) navigate exactly as they did before — this is decoration, and
+ * nothing on the site depends on it.
+ *
+ * Kept deliberately quick. The old page leaves in a third of the time the new
+ * one takes to arrive, so the site feels responsive rather than sluggish.
+ */
+@view-transition {
+  navigation: auto;
+}
+
+@keyframes page-leave {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+::view-transition-old(root) {
+  animation: page-leave 110ms var(--ease-in) both;
+}
+
+::view-transition-new(root) {
+  animation: page-arrive 320ms var(--ease-out) both;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -185,6 +221,40 @@ td {
   color: var(--accent-contrast);
 }
 
+/* -------------------------------------------------------- Scroll reveal */
+
+/*
+ * Blocks marked `data-reveal` by the renderers rise into place as they are
+ * scrolled to.
+ *
+ * The hidden state is gated on `data-motion="on"`, which the inline head script
+ * sets only when JavaScript is actually running and the reader has not asked
+ * for reduced motion. So with JS off, or blocked, or still loading, every one of
+ * these elements is simply visible — content is never hidden by a script that
+ * might not arrive. The same script clears the flag if `main.js` fails to boot,
+ * which is the belt to that braces.
+ */
+/*
+ * `translate` rather than `transform` on purpose. Several of these blocks are
+ * cards that also lift on hover, and this selector is more specific than a bare
+ * `.card:hover` — written as a transform it would win the cascade and kill the
+ * hover outright. The independent property composes with transform instead of
+ * replacing it, so both effects survive.
+ */
+:root[data-motion="on"] [data-reveal] {
+  opacity: 0;
+  translate: 0 14px;
+  transition:
+    opacity 600ms var(--ease-out),
+    translate 600ms var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+:root[data-motion="on"] [data-reveal].is-visible {
+  opacity: 1;
+  translate: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -196,5 +266,29 @@ td {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /*
+   * View transition pseudo-elements live outside the document tree, so the
+   * universal selector above does not reach them. They need saying twice.
+   */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  /* Nothing should be waiting on an observer that will never animate it. */
+  :root[data-motion="on"] [data-reveal] {
+    opacity: 1;
+    translate: none;
+  }
+}
+
+/* Paper has no scroll position, so nothing may be waiting to be revealed. */
+@media print {
+  :root[data-motion="on"] [data-reveal] {
+    opacity: 1;
+    translate: none;
   }
 }
