@@ -190,11 +190,23 @@
  * readable is to lay a heavy, fixed wash over all of it and set the text light
  * on top regardless of the page theme.
  */
+/*
+ * The text here is set in literal light values rather than `--text-inverse`,
+ * which flips to near-black in dark mode. The scrim below does not flip — it is
+ * the same dark wash in both themes, because the pictures are micrographs with
+ * no reliably light or dark half — so text keyed to the theme came out black on
+ * black. What sits over the scrim has to be keyed to the scrim.
+ */
 .card--onImage {
   overflow: hidden;
   min-height: 15rem;
-  color: var(--text-inverse);
+  color: #f7fbfd;
   border-color: rgba(255, 255, 255, 0.16);
+}
+
+.card--onImage .card__title,
+.card--onImage .card__title a {
+  color: #f7fbfd;
 }
 
 .card__media,
@@ -256,8 +268,9 @@
 }
 
 .card--onImage:hover .card__title,
+.card--onImage:hover .card__title a,
 .card--onImage:hover .card__meta {
-  color: var(--text-inverse);
+  color: #f7fbfd;
 }
 
 /* ---------------------------------------------------------------- Figures */
@@ -293,10 +306,20 @@
   border-top: 1px solid var(--border);
 }
 
+/*
+ * Ordinary block flow, not a grid — see the note in `prosePanel`. A grid or
+ * flex container here would refuse to overlap the floated figure below and sit
+ * in a narrow column beside it all the way down.
+ *
+ * `flow-root` so the block still contains its float and keeps its full height.
+ */
 .section-block {
-  display: grid;
-  gap: var(--space-5);
-  align-items: start;
+  display: flow-root;
+}
+
+.section-block > .callout,
+.section-block > .section-block__papers {
+  margin-top: var(--space-5);
 }
 
 /*
@@ -309,38 +332,19 @@
  * A float has no such problem — the words simply close over the bottom of the
  * picture and carry on.
  */
-.section-block--figure {
-  display: flow-root; /* contains the float, so the block keeps its height */
-  gap: 0;
-}
-
 .section-block--figure > .figure {
   float: right;
-  width: min(42%, 24rem);
-  margin: 0 0 var(--space-5) var(--space-6);
+  width: min(40%, 22rem);
+  margin: 0 0 var(--space-4) var(--space-6);
 }
 
 /*
- * Plain block flow inside, not a grid. A grid container establishes its own
- * formatting context, which means it refuses to overlap the float at all and
- * would sit in a narrow column for its whole height — exactly the layout this
- * is here to avoid.
- */
-.section-block--figure > .section-block__text {
-  display: block;
-}
-
-.section-block--figure > .section-block__text > * + * {
-  margin-top: var(--space-5);
-}
-
-/*
- * These two have backgrounds and borders of their own, so unlike a paragraph
+ * These two have a background and a border of their own, so unlike a paragraph
  * they cannot tuck under the picture — a block box overlaps a float even where
- * its text does not. They start below it instead.
+ * its line boxes do not. They start below it instead.
  */
-.section-block--figure .callout,
-.section-block--figure .section-block__papers {
+.section-block--figure > .callout,
+.section-block--figure > .section-block__papers {
   clear: right;
 }
 
@@ -355,17 +359,6 @@
 
 .section-block + .section-block {
   margin-top: var(--space-7);
-}
-
-/*
- * The text column. Every block gets this wrapper, not only the ones that hold
- * more than prose, so a two-column block always has exactly two grid children —
- * otherwise a story's callout would be laid out where its picture should be.
- */
-.section-block__text {
-  display: grid;
-  gap: var(--space-5);
-  align-content: start;
 }
 
 /* -------------------------------------------------------------- Stories */

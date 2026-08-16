@@ -210,8 +210,15 @@ function prosePanel(
 ): string {
   const papers = parts.papers ?? [];
 
+  /*
+   * The prose, callout and citations are direct children of the block, with no
+   * wrapper around them. That is load-bearing: a wrapper is a block box of its
+   * own, and any box that establishes a formatting context — a grid, a flex
+   * container, anything with `overflow` — refuses to overlap a float at all. It
+   * would sit in a narrow column beside the picture for its whole height rather
+   * than closing over the bottom of it, which is the entire point of the float.
+   */
   const text = join([
-    '<div class="section-block__text">',
     '<div class="prose">',
     parts.eyebrow ? `<p class="section__eyebrow">${esc(parts.eyebrow)}</p>` : "",
     showTitle ? `<h3>${esc(parts.title)}</h3>` : "",
@@ -242,7 +249,6 @@ function prosePanel(
           "</div>",
         ])
       : "",
-    "</div>",
   ]);
 
   const classes = cls(
@@ -263,7 +269,7 @@ function prosePanel(
       ? join([
           '<figure class="figure">',
           image(parts.figure, depth, {
-            sizes: "(max-width: 700px) 100vw, 24rem",
+            sizes: "(max-width: 700px) 100vw, 22rem",
             alt: parts.caption || parts.title,
           }),
           parts.caption ? `<figcaption>${esc(parts.caption)}</figcaption>` : "",
