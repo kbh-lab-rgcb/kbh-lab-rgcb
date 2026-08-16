@@ -1,0 +1,4 @@
+name: Savitha
+role: Lab Assistant 
+
+Savitha supports the laboratory's day-to-day activities, including store and stock register keeping.
