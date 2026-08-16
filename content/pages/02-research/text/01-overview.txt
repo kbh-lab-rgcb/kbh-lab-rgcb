@@ -1,4 +1,5 @@
 title: Overview
+caption: The programme's research themes, and the agencies supporting them.
 
 Our central theme is the **cellular dynamics of resolving inflammation, with
 special reference to the role of sphingolipids**. Sphingolipids are not merely
@@ -8,4 +9,9 @@ the character of the microenvironment.
 
 Work in the lab moves between three questions — how these lipids shape innate
 immunity, how tumours exploit them, and whether the enzymes that produce them
-are tractable drug targets.
+are tractable drug targets. Alongside the experimental work we have reviewed how
+S1P signalling operates across infection and immunity, the place of S1PR1 in
+cancer, and the role of phytochemicals in cancer immunotherapy.
+
+The stories below follow individual lines of that work, from an initial
+observation to a sharper biological or translational conclusion.

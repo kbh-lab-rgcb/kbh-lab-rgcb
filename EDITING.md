@@ -102,6 +102,34 @@ Two things that make this hard to get wrong:
 - The line works **at the top with the other settings or at the bottom under
   your biography**. Adding it wherever you happen to be typing is fine.
 
+### Add a research story
+
+A research story is a longer piece about one line of work, with the papers
+behind it. It appears in full on the research page **and as a card on the home
+page** — you only write it once.
+
+Create a file in `content/pages/02-research/stories/`, named with the next
+number, such as `06-my-new-story.txt`:
+
+```text
+title: The headline, written as a sentence
+tag: Topic · Second topic
+lead: One sentence saying what the work found.
+why: Why it matters, in a sentence or two.
+excerpt: The short version, used on the home page card.
+papers: 10.3390/biom11050661
+
+The background research, in paragraphs.
+```
+
+You give the **DOI** of each paper, not the citation — the site prints the
+citation from the publications page, so it is written out once and stays in
+step. Add the paper there first.
+
+Every line except the story itself is optional; leave one out and that part is
+simply not shown. `content/pages/02-research/stories/README.md` explains each
+line in full.
+
 ### Add a publication
 
 Open `content/pages/05-publications/years/` and edit the file for that year, or

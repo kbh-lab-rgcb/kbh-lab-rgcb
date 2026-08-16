@@ -27,6 +27,7 @@ for (const page of site.pages) {
   const bits = [
     `${page.banners.length} banner image(s)${page.banners.length > 1 ? " — carousel" : ""}`,
     page.sections.length ? `${page.sections.length} text section(s)` : "",
+    page.stories.length ? `${page.stories.length} research story/stories` : "",
     page.members.length ? `${page.members.length} people` : "",
     page.publicationYears.length
       ? `${page.publicationYears.reduce((total, year) => total + year.items.length, 0)} papers across ${page.publicationYears.length} years`

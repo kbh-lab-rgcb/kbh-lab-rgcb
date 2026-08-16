@@ -5,7 +5,7 @@
 
 import assert from "node:assert/strict";
 import test, { before, after } from "node:test";
-import { readFile, readdir, rm, stat } from "node:fs/promises";
+import { readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, posix, resolve } from "node:path";
@@ -227,11 +227,86 @@ test("lab authors are bolded in citations and others are not", () => {
   assert.ok(!html.includes("<strong>Someone Else</strong>"));
 });
 
-test("all nine real publications render with a link out to the paper", () => {
+test("all ten real publications render with a link out to the paper", () => {
   const html = real["publications/index.html"];
-  assert.equal((html.match(/<li class="pub">/g) ?? []).length, 9);
-  assert.equal((html.match(/href="https:\/\/doi\.org\//g) ?? []).length, 9);
-  assert.equal((html.match(/href="https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\//g) ?? []).length, 9);
+  assert.equal((html.match(/<li class="pub">/g) ?? []).length, 10);
+  assert.equal((html.match(/href="https:\/\/doi\.org\//g) ?? []).length, 10);
+  assert.equal((html.match(/href="https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\//g) ?? []).length, 10);
+});
+
+/* ----------------------------------------------- Only-if-added: stories */
+
+test("a section with no story lines gets no story markup at all", () => {
+  const html = real["research/index.html"];
+  const block = html.slice(html.indexOf('id="funding"'));
+  const funding = block.slice(0, block.indexOf("</section>"));
+  assert.ok(!funding.includes("section__eyebrow"), "no empty kicker");
+  assert.ok(!funding.includes("callout"), "no empty callout");
+  assert.ok(!funding.includes("section-block__papers"), "no empty citation trail");
+});
+
+test("a story cites papers by DOI and gets the publication page's own citation", () => {
+  const story = real["research/index.html"];
+  const papers = real["publications/index.html"];
+  // The story names only a DOI; the citation it prints has to be the one the
+  // publications page prints, down to the bolding of the lab's authors.
+  const fromStory = [...story.matchAll(/<p class="pub__citation">(.*?)<\/p>/g)]
+    .map((match) => match[1])
+    .find((citation) => citation.includes("Targeting S1PR1"));
+  assert.ok(fromStory, "the pancreatic story should print its paper");
+  assert.match(fromStory, /<strong>Lankadasari MB<\/strong>/);
+  assert.ok(papers.includes(fromStory), "and print it identically to the publications page");
+  assert.match(story, /href="https:\/\/doi\.org\/10\.7150\/thno\.25308"/);
+});
+
+test("a story citing an unlisted DOI still publishes, and warns", async () => {
+  const out = join(tmpdir(), `crp7-story-${process.pid}`);
+  const dir = join(root, "content", "pages", "02-research", "stories");
+  const file = join(dir, "99-temporary-test-story.txt");
+  await writeFile(file, "title: Temporary\npapers: 10.9999/not-a-real-paper\n\nA body.\n");
+  try {
+    const result = await buildSite({ root, outRoot: out });
+    const html = await readFile(join(out, "research", "index.html"), "utf8");
+    assert.match(html, /id="temporary-test-story"/, "the story still renders");
+    assert.match(html, /href="https:\/\/doi\.org\/10\.9999\/not-a-real-paper"/, "with a link");
+    assert.ok(
+      result.warnings.some((warning) => warning.message.includes("10.9999/not-a-real-paper")),
+      "and the editor is told which paper to add",
+    );
+  } finally {
+    await rm(file, { force: true });
+    await rm(out, { recursive: true, force: true });
+  }
+});
+
+test("a value wrapped onto an indented second line is not lost into the body", () => {
+  // The story files wrap their long `lead:` lines, and a reader must see the
+  // whole sentence in the standfirst rather than half of it as a stray
+  // paragraph.
+  const html = real["research/index.html"];
+  assert.match(
+    html,
+    /<p class="section__lead">Across two preclinical studies we traced how cardamonin can interrupt both tumour formation and inflammation-driven colorectal cancer, in part by reshaping microRNA networks\.<\/p>/,
+  );
+});
+
+test("adding a story to the research page puts it on the home page too", () => {
+  const research = real["research/index.html"];
+  const home = real["index.html"];
+  const ids = [...research.matchAll(/class="section-block[^"]*--story" id="([^"]+)"/g)].map(
+    (match) => match[1],
+  );
+  assert.ok(ids.length > 0, "the research page should have stories");
+
+  // Every one of them, linked to the story itself, so nobody has to keep a
+  // second list in step with this one.
+  for (const id of ids) {
+    assert.ok(home.includes(`href="./research/#${id}"`), `${id} is missing from the home page`);
+  }
+  for (const href of home.match(/href="\.\/research\/#([^"]+)"/g) ?? []) {
+    const id = /#([^"]+)"/.exec(href)?.[1];
+    assert.ok(ids.includes(id), `the home page links to "${id}", which is not a story`);
+  }
 });
 
 /* --------------------------------------------------------------- Theming */

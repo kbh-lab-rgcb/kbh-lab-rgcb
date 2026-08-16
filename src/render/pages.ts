@@ -231,14 +231,6 @@ function introBlock(page: Page, depth: number): string {
 
 /* ------------------------------------------------------------------- Home */
 
-/**
- * How many research stories the home page previews.
- *
- * The same four as the recent-publications block above it. A home page is a way
- * in, not a contents page: the rest are one click away.
- */
-const HOME_STORIES = 4;
-
 function renderHome(site: Site, page: Page, depth: number): string {
   const teamPage = pageOf(site, "team");
   const researchPage = pageOf(site, "research");
@@ -250,10 +242,14 @@ function renderHome(site: Site, page: Page, depth: number): string {
    * file to `content/pages/…-research/stories/` is the whole of the work: it
    * appears here and there together, and neither page keeps its own list that
    * could fall out of step with the other.
+   *
+   * Every one of them, rather than the first few. The publications and people
+   * above are cut down because their pages hold dozens; research stories are
+   * written a few a year, and one silently missing from the front page is a far
+   * worse surprise than a second row of cards. A story that should not be here
+   * says `home: no` for itself.
    */
-  const stories = (researchPage?.stories ?? [])
-    .filter((story) => story.onHome)
-    .slice(0, HOME_STORIES);
+  const stories = (researchPage?.stories ?? []).filter((story) => story.onHome);
 
   const members = teamPage?.members ?? [];
   const preview = homePeople(members).slice(0, 8);

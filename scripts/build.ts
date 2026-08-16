@@ -14,6 +14,7 @@ console.log(
 for (const page of result.site.pages) {
   const counts = [
     page.sections.length && `${page.sections.length} section(s)`,
+    page.stories.length && `${page.stories.length} story/stories`,
     page.members.length && `${page.members.length} people`,
     page.publicationYears.length &&
       `${page.publicationYears.reduce((total, year) => total + year.items.length, 0)} papers`,
