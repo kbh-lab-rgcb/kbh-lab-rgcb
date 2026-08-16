@@ -615,20 +615,20 @@
 /* ------------------------------------------------------------------ Stats */
 
 /*
- * Slim tiles. These are three short facts, not three feature cards — the value
- * and its label sit on one line so the row stays a band rather than a block.
+ * A row of headline counts, each opening out into the parts that make it up.
+ * Three tiles side by side; they stack on a narrow screen.
  */
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
+  gap: var(--space-4);
+  align-items: start;
 }
 
 .stat {
-  padding: var(--space-3) var(--space-4);
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
+  padding: var(--space-4);
+  display: grid;
+  gap: 0.15rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -642,19 +642,57 @@
   box-shadow: var(--shadow-md);
 }
 
+/*
+ * Plain text ink, not the accent. Colouring these would suggest the three tiles
+ * encode different kinds of thing; they are all simply counts, so size and
+ * position carry the emphasis instead.
+ *
+ * Proportional figures deliberately — `tabular-nums` gives every digit the width
+ * of a zero, which reads loose at this size. The breakdown column below is the
+ * place that needs fixed widths.
+ */
 .stat__value {
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.05;
   letter-spacing: -0.03em;
-  color: var(--accent);
-  flex: none;
-  transition: transform var(--transition);
-  transform-origin: 0 50%;
+  color: var(--text);
 }
 
-.stat:hover .stat__value {
-  transform: scale(1.06);
+.stat__label {
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+  color: var(--text-muted);
+}
+
+.stat__breakdown {
+  margin: var(--space-3) 0 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.stat__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+}
+
+.stat__row dt {
+  color: var(--text-muted);
+  min-width: 0;
+}
+
+/* A column of numbers that has to line up, so fixed-width digits belong here. */
+.stat__row dd {
+  margin: 0;
+  flex: none;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
 }
 
 .stat__label {

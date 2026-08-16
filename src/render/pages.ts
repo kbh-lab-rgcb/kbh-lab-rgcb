@@ -18,6 +18,7 @@ import {
   rosterList,
   sectionBlock,
   sectionHead,
+  statTile,
 } from "./components.ts";
 import { icons } from "./icons.ts";
 import { hrefTo, rel } from "./url.ts";
@@ -216,20 +217,57 @@ function renderHome(site: Site, page: Page, depth: number): string {
   const recent = publicationsPage?.publicationYears[0];
   const featured = (linksPage?.links ?? []).filter((link) => link.featured);
 
-  const stats = [
-    members.length > 0 ? { value: String(members.length), label: "People in the lab" } : null,
-    publicationsPage && publicationsPage.publicationYears.length > 0
+  /*
+   * The three headline counts, each with the parts that make it up.
+   *
+   * Every figure is derived from the same content the pages themselves render,
+   * so a number here cannot fall out of step with the section it summarises —
+   * add a person, and both the team page and this tile move together.
+   */
+  const alumniPage = pageOf(site, "alumni");
+  const alumni = alumniPage?.members ?? [];
+  const rosters = alumniPage?.rosters ?? [];
+  const rosterTotal = rosters.reduce((total, roster) => total + roster.entries.length, 0);
+  const papers = publicationsPage?.publicationYears ?? [];
+  const paperTotal = papers.reduce((total, year) => total + year.items.length, 0);
+
+  const tiles = [
+    members.length > 0
       ? {
-          value: String(
-            publicationsPage.publicationYears.reduce((total, year) => total + year.items.length, 0),
-          ),
-          label: "Selected publications",
+          value: String(members.length),
+          label: "People in the lab",
+          breakdown: groupTeam(members.filter((member) => !isLead(member))).map((section) => ({
+            label: section.group.title,
+            value: section.people.length,
+          })),
         }
       : null,
-    (pageOf(site, "alumni")?.members.length ?? 0) > 0
-      ? { value: String(pageOf(site, "alumni")!.members.length), label: "Alumni" }
+
+    alumni.length + rosterTotal > 0
+      ? {
+          value: String(alumni.length + rosterTotal),
+          label: "Alumni and trainees",
+          breakdown: [
+            ...groupAlumni(alumni).map((section) => ({
+              label: section.group.title,
+              value: section.people.length,
+            })),
+            ...rosters.map((roster) => ({ label: roster.title, value: roster.entries.length })),
+          ],
+        }
       : null,
-  ].filter((stat): stat is { value: string; label: string } => stat !== null);
+
+    paperTotal > 0
+      ? {
+          value: String(paperTotal),
+          label: "Selected publications",
+          // The four most recent years; the rest are a click away on the page.
+          breakdown: papers
+            .slice(0, 4)
+            .map((year) => ({ label: year.year, value: year.items.length })),
+        }
+      : null,
+  ].filter((tile): tile is NonNullable<typeof tile> => tile !== null);
 
   return join([
     introBlock(page, depth) ||
@@ -238,15 +276,10 @@ function renderHome(site: Site, page: Page, depth: number): string {
         "content/pages/01-home/text/01-welcome.txt",
       )}</div></section>`,
 
-    stats.length > 0
+    tiles.length > 0
       ? join([
           '<section class="section"><div class="container"><div class="stats">',
-          stats
-            .map(
-              (stat, index) =>
-                `<div class="stat"${reveal(index)}><p class="stat__value">${esc(stat.value)}</p><p class="stat__label">${esc(stat.label)}</p></div>`,
-            )
-            .join(""),
+          tiles.map((tile, index) => statTile({ ...tile, index })).join(""),
           "</div></div></section>",
         ])
       : "",

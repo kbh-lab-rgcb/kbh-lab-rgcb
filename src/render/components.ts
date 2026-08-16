@@ -11,6 +11,52 @@ import { iconForLink } from "./icons.ts";
 import { rel } from "./url.ts";
 
 /**
+ * A headline count with the parts that make it up underneath.
+ *
+ * A stat tile rather than a chart: these are headline numbers, and three of
+ * them side by side is a KPI row, not a grouped bar chart with four bars nobody
+ * needs to compare across groups.
+ *
+ * The value carries no colour of its own. Colour here would imply the three
+ * tiles encode different *kinds* of thing, which they do not — they are all
+ * plain counts — so the numbers wear ordinary text ink and the tile relies on
+ * size and position instead. The breakdown figures do get `tabular-nums`,
+ * because they form a column that has to line up; the headline does not, since
+ * fixed-width digits look loose at display sizes.
+ */
+export function statTile(options: {
+  value: string;
+  label: string;
+  breakdown?: { label: string; value: number }[];
+  index?: number;
+}): string {
+  const rows = (options.breakdown ?? []).filter((row) => row.value > 0);
+
+  return join([
+    `<article class="stat"${reveal(options.index ?? 0)}>`,
+    `<p class="stat__value">${esc(options.value)}</p>`,
+    `<p class="stat__label">${esc(options.label)}</p>`,
+    rows.length > 0
+      ? join([
+          '<dl class="stat__breakdown">',
+          rows
+            .map((row) =>
+              join([
+                '<div class="stat__row">',
+                `<dt>${esc(row.label)}</dt>`,
+                `<dd>${row.value}</dd>`,
+                "</div>",
+              ]),
+            )
+            .join(""),
+          "</dl>",
+        ])
+      : "",
+    "</article>",
+  ]);
+}
+
+/**
  * A collapsible list of names and where they came from.
  *
  * A native `<details>` rather than a scripted panel: it opens and closes with
