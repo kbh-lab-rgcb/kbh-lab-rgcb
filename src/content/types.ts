@@ -112,6 +112,22 @@ export type PageKind =
   | "contact"
   | "links";
 
+/** One line of a roster: a person and where they came from. */
+export type RosterEntry = {
+  name: string;
+  /** College or institution. Empty when the editor gave only a name. */
+  affiliation: string;
+};
+
+/**
+ * A plain list of people who pass through the lab in numbers too large for a
+ * card each — visiting trainees, MSc project students. Rendered collapsed.
+ */
+export type Roster = {
+  title: string;
+  entries: RosterEntry[];
+};
+
 export type Page = {
   /** URL slug with the ordering prefix removed, e.g. `research`. */
   slug: string;
@@ -132,6 +148,8 @@ export type Page = {
   publicationYears: PublicationYear[];
   links: LinkItem[];
   gallery: GalleryItem[];
+  /** Collapsible name lists from `lists/`, shown below the cards. */
+  rosters: Roster[];
   fields: Record<string, string>;
 };
 

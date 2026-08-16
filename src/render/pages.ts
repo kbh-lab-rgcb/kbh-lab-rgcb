@@ -15,6 +15,7 @@ import {
   linkList,
   personCard,
   reveal,
+  rosterList,
   sectionBlock,
   sectionHead,
 } from "./components.ts";
@@ -66,9 +67,12 @@ const TEAM_GROUPS: TeamGroup[] = [
   },
   {
     id: "technical",
-    title: "Technical staff",
-    lead: "",
-    match: /technical manager|technical officer|technical assistant|technician/i,
+    title: "Laboratory management",
+    lead: "Day-to-day running of the laboratory, consultancy services, and the animal house.",
+    // "Lab Manager" has to be caught here rather than falling through to the
+    // support group below, which matches lab *assistant* and nothing else.
+    match:
+      /technical manager|technical officer|technical assistant|technician|lab(oratory)?\s*manager|facility manager/i,
   },
   {
     id: "project",
@@ -85,6 +89,61 @@ const TEAM_GROUPS: TeamGroup[] = [
 ];
 
 const UNGROUPED: TeamGroup = { id: "other", title: "Team", lead: "", match: /(?:)/ };
+
+/**
+ * The alumni page, in the order the sections appear.
+ *
+ * Post-doctoral fellows sit above doctoral students, and the MSc students who
+ * did their final project here are given a section of their own at the same
+ * weight rather than a footnote — that project is, for most of them, the whole
+ * of their research training.
+ */
+const ALUMNI_GROUPS: TeamGroup[] = [
+  {
+    id: "postdoc",
+    title: "Post-doctoral alumni",
+    lead: "",
+    match: /post-?\s?doc|research associate|\bpda\b/i,
+  },
+  {
+    id: "phd",
+    title: "PhD alumni",
+    lead: "",
+    match: /ph\.?\s?d|doctoral|research scholar/i,
+  },
+  {
+    id: "msc",
+    title: "BRIC-RGCB MSc alumni",
+    lead: "MSc Biotechnology students who carried out their final project in the laboratory.",
+    match: /m\.?\s?sc|masters?|dissertation student/i,
+  },
+  {
+    id: "project",
+    title: "Project associates and fellows",
+    lead: "People who worked on funded projects in the laboratory before moving on.",
+    match:
+      /project associate|project assistant|project fellow|project staff|\bsrf\b|\bjrf\b|senior research fellow|junior research fellow|research fellow/i,
+  },
+];
+
+const ALUMNI_UNGROUPED: TeamGroup = { id: "other", title: "Alumni", lead: "", match: /(?:)/ };
+
+/** Alumni by group, in `ALUMNI_GROUPS` order, skipping groups nobody is in. */
+function groupAlumni(members: Member[]): { group: TeamGroup; people: Member[] }[] {
+  const resolve = (member: Member): TeamGroup => {
+    const explicit = member.fields.group?.trim().toLowerCase();
+    const named = explicit
+      ? ALUMNI_GROUPS.find(
+          (group) => group.id === explicit || group.title.toLowerCase() === explicit,
+        )
+      : undefined;
+    return named ?? ALUMNI_GROUPS.find((g) => g.match.test(member.role)) ?? ALUMNI_UNGROUPED;
+  };
+
+  return [...ALUMNI_GROUPS, ALUMNI_UNGROUPED]
+    .map((group) => ({ group, people: members.filter((member) => resolve(member) === group) }))
+    .filter((section) => section.people.length > 0);
+}
 
 function groupFor(member: Member): TeamGroup {
   // An explicit `group:` line always wins, for the roles no pattern can guess.
@@ -301,13 +360,48 @@ function renderTeam(page: Page, depth: number, folder: string): string {
 /* ----------------------------------------------------------------- Alumni */
 
 function renderAlumni(page: Page, depth: number, folder: string): string {
+  const sections = groupAlumni(page.members);
+
   return join([
     introBlock(page, depth),
-    '<section class="section"><div class="container">',
-    page.members.length > 0
-      ? `<div class="grid grid--people">${page.members.map((member, index) => alumnusCard(member, depth, index)).join("")}</div>`
-      : emptyNote("Add an alumnus by putting a text file in", `${folder}/text/`),
-    "</div></section>",
+
+    sections
+      .map((section, index) =>
+        join([
+          `<section class="section${index % 2 === 0 ? "" : " section--sunken"}"><div class="container">`,
+          sectionHead({ title: section.group.title, lead: section.group.lead }),
+          '<div class="grid grid--people">',
+          section.people.map((member, i) => alumnusCard(member, depth, i)).join(""),
+          "</div>",
+          "</div></section>",
+        ]),
+      )
+      .join(""),
+
+    // The name lists close the page: too many people for a card each, and the
+    // two lists sit side by side so neither dominates.
+    page.rosters.length > 0
+      ? join([
+          '<section class="section"><div class="container">',
+          sectionHead({
+            eyebrow: "Also through the lab",
+            title: "Trainees and project students",
+            lead: "Open a list to see names and the college each person came from.",
+          }),
+          '<div class="roster-grid">',
+          page.rosters.map((roster, index) => rosterList(roster, index)).join(""),
+          "</div>",
+          "</div></section>",
+        ])
+      : "",
+
+    page.members.length === 0 && page.rosters.length === 0
+      ? join([
+          '<section class="section"><div class="container">',
+          emptyNote("Add an alumnus by putting a text file in", `${folder}/text/`),
+          "</div></section>",
+        ])
+      : "",
   ]);
 }
 

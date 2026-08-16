@@ -35,6 +35,8 @@ import type {
   PageKind,
   Publication,
   PublicationYear,
+  Roster,
+  RosterEntry,
   Section,
   Site,
   SiteConfig,
@@ -455,6 +457,62 @@ async function loadLinks(ctx: Ctx): Promise<LinkItem[]> {
   return links;
 }
 
+/**
+ * Reads `lists/` into collapsible name rosters.
+ *
+ * One file per list, one person per line. A card each would drown the alumni
+ * page — these are the people who pass through in tens — so the format is as
+ * close to typing out a list as it can be:
+ *
+ * ```text
+ * title: Trainees from other institutions
+ *
+ * Anjali Nair — St Teresa's College, Ernakulam
+ * Rahul Menon, Government College Kariavattom
+ * ```
+ *
+ * The separator may be an em dash, an en dash, a hyphen or a comma, because
+ * which one an editor reaches for depends entirely on their keyboard. A line
+ * with no separator at all is still a valid entry — it is just a name.
+ */
+async function loadRosters(ctx: Ctx): Promise<Roster[]> {
+  const dir = join(ctx.pageDir, "lists");
+  if (!existsSync(dir)) return [];
+
+  const rosters: Roster[] = [];
+  for (const file of await listTextFiles(dir)) {
+    const { slug } = parseName(file);
+    const raw = (await readIfPresent(join(dir, file))) ?? "";
+    const { fields, body } = parseDoc(raw);
+
+    const entries: RosterEntry[] = [];
+    for (const line of body.replace(/\r\n/g, "\n").split("\n")) {
+      const text = line.trim().replace(/^[-*•]\s*/, "");
+      if (!text || text.startsWith("#")) continue;
+      const [, name, affiliation = ""] = /^(.*?)(?:\s*[—–]\s*|\s+-\s+|\s*,\s*)(.*)$/.exec(text) ?? [
+        "",
+        text,
+      ];
+      if (name.trim()) entries.push({ name: name.trim(), affiliation: affiliation.trim() });
+    }
+
+    if (entries.length === 0) {
+      ctx.warnings.push({
+        file: `${ctx.relDir}/lists/${file}`,
+        message: "This list has no names in it.",
+        fallback: "It was left out. Add one person per line, as `Name — College`.",
+      });
+      continue;
+    }
+
+    rosters.push({
+      title: field(fields, "title", "name") || titleFromSlug(slug),
+      entries,
+    });
+  }
+  return rosters;
+}
+
 async function loadGallery(ctx: Ctx): Promise<GalleryItem[]> {
   const photosDir = join(ctx.pageDir, "photos");
   const textDir = join(ctx.pageDir, "text");
@@ -539,6 +597,7 @@ export async function loadSite(options: {
         kind === "publications" ? await loadPublications(ctx, config.labAuthors) : [],
       links: kind === "links" ? await loadLinks(ctx) : [],
       gallery: kind === "gallery" ? await loadGallery(ctx) : [],
+      rosters: await loadRosters(ctx),
       fields: meta.fields,
     };
 

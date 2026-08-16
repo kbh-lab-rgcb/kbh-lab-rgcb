@@ -6,9 +6,42 @@
  */
 
 import { attr, esc, join } from "../html.ts";
-import type { Img, Member, ProfileLink, Section } from "../content/types.ts";
+import type { Img, Member, ProfileLink, Roster, Section } from "../content/types.ts";
 import { iconForLink } from "./icons.ts";
 import { rel } from "./url.ts";
+
+/**
+ * A collapsible list of names and where they came from.
+ *
+ * A native `<details>` rather than a scripted panel: it opens and closes with
+ * JavaScript switched off, it is keyboard operable for free, and the browser's
+ * own find-in-page will open it to reveal a match. The count sits in the
+ * summary so the reader knows the size of the list before opening it.
+ */
+export function rosterList(roster: Roster, index = 0): string {
+  return join([
+    `<details class="roster"${reveal(index)}>`,
+    '<summary class="roster__summary">',
+    `<span class="roster__title">${esc(roster.title)}</span>`,
+    `<span class="roster__count">${roster.entries.length}</span>`,
+    "</summary>",
+    '<ol class="roster__list">',
+    roster.entries
+      .map((entry) =>
+        join([
+          '<li class="roster__item">',
+          `<span class="roster__name">${esc(entry.name)}</span>`,
+          entry.affiliation
+            ? `<span class="roster__affiliation">${esc(entry.affiliation)}</span>`
+            : "",
+          "</li>",
+        ]),
+      )
+      .join(""),
+    "</ol>",
+    "</details>",
+  ]);
+}
 
 /**
  * Marks a block to fade and rise into place as it is scrolled to.
