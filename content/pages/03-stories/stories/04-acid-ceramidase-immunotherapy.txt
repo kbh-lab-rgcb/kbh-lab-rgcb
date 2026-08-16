@@ -1,5 +1,6 @@
 title: Turning immune-cold colorectal tumours hot by targeting acid ceramidase
 tag: Cancer metabolism · Immunotherapy
+caption: Overview of the research
 lead: Blocking acid ceramidase reshaped tumour-cell metabolism, triggered
   immunogenic cell death and strengthened anti-PD-1 responses in preclinical
   colorectal cancer models.

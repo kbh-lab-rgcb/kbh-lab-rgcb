@@ -1,5 +1,6 @@
 title: Breaking the stromal barrier to pancreatic cancer treatment
 tag: Pancreatic cancer · Tumour microenvironment
+caption: Masson's trichrome staining of mouse pancreatic tissue (whole slide scan).
 lead: By disrupting the S1PR1/STAT3 signalling loop, the multiple sclerosis drug
   FTY720 made pancreatic tumours more responsive to gemcitabine in preclinical
   models and weakened the fibrotic microenvironment that protects them.

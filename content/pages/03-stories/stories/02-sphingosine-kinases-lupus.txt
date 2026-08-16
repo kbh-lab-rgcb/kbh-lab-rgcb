@@ -1,5 +1,7 @@
 title: Two kinases, two outcomes — pinpointing SphK1 in lupus
 tag: Autoimmunity · Lipid signalling
+caption: SphK2 deficiency enhances pristane-induced apoptosis. (A) Peritoneal-cell apoptosis by flow cytometry. (B) Renal IgG deposition. (C) Serum IgG autoantibodies. p < 0.05, p < 0.005, P < 0.001.
+
 lead: A paired investigation of SphK2 and SphK1 showed that closely related
   enzymes can play very different roles in interferon-driven autoimmunity, an
   important distinction when choosing a therapeutic target.

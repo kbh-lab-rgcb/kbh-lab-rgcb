@@ -1,5 +1,6 @@
 title: From a spice-derived molecule to a colorectal cancer programme
 tag: Natural products · Colorectal cancer
+caption: Cardamonin induces ROS-dependent apoptosis. (a) Mito-ROS in HCT116 cells treated with Cardamonin ± NAC. (b) Bax translocation and mitochondrial membrane potential after 48 h treatment.
 lead: Across two preclinical studies we traced how cardamonin can interrupt both
   tumour formation and inflammation-driven colorectal cancer, in part by
   reshaping microRNA networks.
