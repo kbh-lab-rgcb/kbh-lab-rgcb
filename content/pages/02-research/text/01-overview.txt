@@ -13,5 +13,5 @@ are tractable drug targets. Alongside the experimental work we have reviewed how
 S1P signalling operates across infection and immunity, the place of S1PR1 in
 cancer, and the role of phytochemicals in cancer immunotherapy.
 
-The stories below follow individual lines of that work, from an initial
-observation to a sharper biological or translational conclusion.
+The [research stories](../stories/) follow individual lines of that work, from
+an initial observation to a sharper biological or translational conclusion.

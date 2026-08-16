@@ -105,11 +105,11 @@ Two things that make this hard to get wrong:
 ### Add a research story
 
 A research story is a longer piece about one line of work, with the papers
-behind it. It appears in full on the research page **and as a card on the home
-page** — you only write it once.
+behind it. It appears in full on the **Research stories** page **and as a card
+on the home page** — you only write it once.
 
-Create a file in `content/pages/02-research/stories/`, named with the next
-number, such as `06-my-new-story.txt`:
+Create a file in `content/pages/03-stories/stories/`, named with the next
+number, such as `05-my-new-story.txt`:
 
 ```text
 title: The headline, written as a sentence
@@ -127,8 +127,12 @@ citation from the publications page, so it is written out once and stays in
 step. Add the paper there first.
 
 Every line except the story itself is optional; leave one out and that part is
-simply not shown. `content/pages/02-research/stories/README.md` explains each
+simply not shown. `content/pages/03-stories/stories/README.md` explains each
 line in full.
+
+Give the story a picture by putting it in `content/pages/03-stories/figures/`
+under the same name — `05-my-new-story.jpg`. It appears beside the story, and
+behind that story's card on the home page.
 
 ### Add a publication
 

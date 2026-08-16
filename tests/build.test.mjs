@@ -52,10 +52,11 @@ after(async () => {
 /* ------------------------------------------------------- Pages and shell */
 
 test("every page folder produces a page, with home at the root", () => {
-  assert.equal(realResult.pageCount, 8);
+  assert.equal(realResult.pageCount, 9);
   for (const slug of [
     "index.html",
     "research/index.html",
+    "stories/index.html",
     "team/index.html",
     "alumni/index.html",
     "publications/index.html",
@@ -246,7 +247,7 @@ test("a section with no story lines gets no story markup at all", () => {
 });
 
 test("a story cites papers by DOI and gets the publication page's own citation", () => {
-  const story = real["research/index.html"];
+  const story = real["stories/index.html"];
   const papers = real["publications/index.html"];
   // The story names only a DOI; the citation it prints has to be the one the
   // publications page prints, down to the bolding of the lab's authors.
@@ -261,12 +262,12 @@ test("a story cites papers by DOI and gets the publication page's own citation",
 
 test("a story citing an unlisted DOI still publishes, and warns", async () => {
   const out = join(tmpdir(), `crp7-story-${process.pid}`);
-  const dir = join(root, "content", "pages", "02-research", "stories");
+  const dir = join(root, "content", "pages", "03-stories", "stories");
   const file = join(dir, "99-temporary-test-story.txt");
   await writeFile(file, "title: Temporary\npapers: 10.9999/not-a-real-paper\n\nA body.\n");
   try {
     const result = await buildSite({ root, outRoot: out });
-    const html = await readFile(join(out, "research", "index.html"), "utf8");
+    const html = await readFile(join(out, "stories", "index.html"), "utf8");
     assert.match(html, /id="temporary-test-story"/, "the story still renders");
     assert.match(html, /href="https:\/\/doi\.org\/10\.9999\/not-a-real-paper"/, "with a link");
     assert.ok(
@@ -283,7 +284,7 @@ test("a value wrapped onto an indented second line is not lost into the body", (
   // The story files wrap their long `lead:` lines, and a reader must see the
   // whole sentence in the standfirst rather than half of it as a stray
   // paragraph.
-  const html = real["research/index.html"];
+  const html = real["stories/index.html"];
   assert.match(
     html,
     /<p class="section__lead">Across two preclinical studies we traced how cardamonin can interrupt both tumour formation and inflammation-driven colorectal cancer, in part by reshaping microRNA networks\.<\/p>/,
@@ -291,7 +292,7 @@ test("a value wrapped onto an indented second line is not lost into the body", (
 });
 
 test("adding a story to the research page puts it on the home page too", () => {
-  const research = real["research/index.html"];
+  const research = real["stories/index.html"];
   const home = real["index.html"];
   const ids = [...research.matchAll(/class="section-block[^"]*--story" id="([^"]+)"/g)].map(
     (match) => match[1],
@@ -301,9 +302,9 @@ test("adding a story to the research page puts it on the home page too", () => {
   // Every one of them, linked to the story itself, so nobody has to keep a
   // second list in step with this one.
   for (const id of ids) {
-    assert.ok(home.includes(`href="./research/#${id}"`), `${id} is missing from the home page`);
+    assert.ok(home.includes(`href="./stories/#${id}"`), `${id} is missing from the home page`);
   }
-  for (const href of home.match(/href="\.\/research\/#([^"]+)"/g) ?? []) {
+  for (const href of home.match(/href="\.\/stories\/#([^"]+)"/g) ?? []) {
     const id = /#([^"]+)"/.exec(href)?.[1];
     assert.ok(ids.includes(id), `the home page links to "${id}", which is not a story`);
   }

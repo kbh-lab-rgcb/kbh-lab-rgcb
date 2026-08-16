@@ -233,23 +233,25 @@ function introBlock(page: Page, depth: number): string {
 
 function renderHome(site: Site, page: Page, depth: number): string {
   const teamPage = pageOf(site, "team");
-  const researchPage = pageOf(site, "research");
   const publicationsPage = pageOf(site, "publications");
   const linksPage = pageOf(site, "links");
 
   /*
-   * The stories, taken straight from the research page's own folder. Adding a
-   * file to `content/pages/…-research/stories/` is the whole of the work: it
-   * appears here and there together, and neither page keeps its own list that
-   * could fall out of step with the other.
-   *
+   * The page the research stories live on, found by the fact that it has them
+   * rather than by its name. Moving the stories into a folder of their own, or
+   * back in beside the research overview, is then a matter of moving files —
+   * which is the only kind of change the people editing this site can make.
+   */
+  const storiesPage = site.pages.find((page) => page.stories.length > 0);
+
+  /*
    * Every one of them, rather than the first few. The publications and people
-   * above are cut down because their pages hold dozens; research stories are
+   * below are cut down because their pages hold dozens; research stories are
    * written a few a year, and one silently missing from the front page is a far
    * worse surprise than a second row of cards. A story that should not be here
    * says `home: no` for itself.
    */
-  const stories = (researchPage?.stories ?? []).filter((story) => story.onHome);
+  const stories = (storiesPage?.stories ?? []).filter((story) => story.onHome);
 
   const members = teamPage?.members ?? [];
   const preview = homePeople(members).slice(0, 8);
@@ -324,7 +326,7 @@ function renderHome(site: Site, page: Page, depth: number): string {
         ])
       : "",
 
-    stories.length > 0 && researchPage
+    stories.length > 0 && storiesPage
       ? join([
           '<section class="section"><div class="container">',
           sectionHead({ eyebrow: "Research", title: "What we are working on" }),
@@ -338,14 +340,16 @@ function renderHome(site: Site, page: Page, depth: number): string {
                   // written, so a story that only got as far as a title and a
                   // paragraph still reads properly on the card.
                   body: story.excerpt || story.lead || excerpt(story.text, 160),
-                  href: `${hrefTo(depth, researchPage)}#${story.slug}`,
+                  href: `${hrefTo(depth, storiesPage)}#${story.slug}`,
+                  figure: story.figure,
                 },
+                depth,
                 index,
               ),
             )
             .join(""),
           "</div>",
-          `<p class="button-row"><a class="button button--ghost" href="${esc(hrefTo(depth, researchPage))}">All research ${icons.arrowRight}</a></p>`,
+          `<p class="button-row"><a class="button button--ghost" href="${esc(hrefTo(depth, storiesPage))}">${esc(storiesPage.title)} ${icons.arrowRight}</a></p>`,
           "</div></section>",
         ])
       : "",

@@ -1,12 +1,12 @@
 # Research stories
 
 **Each file here becomes one research story**, and each story appears twice: in
-full on the research page, and as a card on the home page. You do not have to do
+full on this page, and as a card on the home page. You do not have to do
 anything to make the home page card appear — adding the file is the whole job.
 
 ## Adding a story
 
-Create a file named like `06-my-new-story.txt` and fill it in:
+Create a file named like `05-my-new-story.txt` and fill it in:
 
 ```text
 title: The headline, written as a sentence
@@ -24,8 +24,8 @@ You can use **bold**, *italic*, [links](https://example.com) and bullet lists,
 the same as anywhere else on the site.
 ```
 
-Then leave a blank line and start writing. That blank line matters: everything
-above it is settings, everything below it is the story.
+The blank line matters: everything above it is settings, everything below it is
+the story.
 
 ## The lines you can use
 
@@ -61,7 +61,7 @@ papers: https://doi.org/10.3390/biom11050661
 ```
 
 You do not type the citation itself. The site looks the DOI up in
-`content/pages/05-publications/years/` and prints the citation exactly as it
+`content/pages/06-publications/years/` and prints the citation exactly as it
 appears on the publications page, with the DOI and PubMed buttons. That way a
 paper is written out once on the whole site, and correcting it there corrects it
 everywhere.
@@ -70,26 +70,25 @@ everywhere.
 there yet, the story still publishes — it just shows the bare DOI with a link,
 and the build report tells you which paper to add.
 
-## Ordering
-
-The `06-` at the front controls where the story sits on the research page, and
-is not shown to visitors. Stories and the text sections in
-[`../text/`](../text/) share one set of numbers, so `06-my-new-story.txt` here
-comes after `01-overview.txt` there and before `07-funding.txt`. To move a
-story, change its number.
-
 ## Pictures
 
 Put the picture in [`../figures/`](../figures/) with **the same name** as the
 story:
 
 ```text
-content/pages/02-research/stories/06-my-new-story.txt
-content/pages/02-research/figures/06-my-new-story.jpg
+stories/05-my-new-story.txt
+figures/05-my-new-story.jpg
 ```
 
-The picture then appears beside the story. A story without one simply runs the
-full width.
+The picture then sits beside the opening of the story, with the writing running
+on beneath it — and it becomes the background of that story's card on the home
+page. A story without one still works: the story runs full width and its card
+stays plain.
+
+## Ordering
+
+The `05-` at the front sets the order on the page and is not shown to visitors.
+To move a story, change its number.
 
 ## Removing a story
 

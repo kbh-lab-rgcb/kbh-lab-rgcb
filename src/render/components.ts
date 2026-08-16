@@ -251,20 +251,26 @@ function prosePanel(
     parts.modifier && `section-block--${parts.modifier}`,
   );
 
+  /*
+   * The figure is emitted before the prose because it is floated beside it, and
+   * a float only wraps the content that follows it in the source. Put it after
+   * the text and it drops to the bottom of the block, leaving a column of empty
+   * space where the story should have carried on reading.
+   */
   return join([
     `<div class="${classes}" id="${esc(parts.id)}"${reveal()}>`,
-    text,
     parts.figure
       ? join([
           '<figure class="figure">',
           image(parts.figure, depth, {
-            sizes: "(max-width: 700px) 100vw, 40vw",
+            sizes: "(max-width: 700px) 100vw, 24rem",
             alt: parts.caption || parts.title,
           }),
           parts.caption ? `<figcaption>${esc(parts.caption)}</figcaption>` : "",
           "</figure>",
         ])
       : "",
+    text,
     "</div>",
   ]);
 }
@@ -317,11 +323,33 @@ export function storyBlock(story: Story, depth: number): string {
  * this one goes to a place on this site rather than out to another.
  */
 export function storyCard(
-  options: { title: string; body: string; href: string },
+  options: { title: string; body: string; href: string; figure: Img | null },
+  depth: number,
   index = 0,
 ): string {
   return join([
-    `<article class="card card--link"${reveal(index)}>`,
+    `<article class="${cls("card", "card--link", options.figure && "card--onImage")}"${reveal(index)}>`,
+
+    /*
+     * The story's own figure, behind the words, under a scrim — the same
+     * treatment as the banner, and for the same reason: the picture is there to
+     * be recognised, not read, and the text on top has to stay legible whatever
+     * the image turns out to look like. A story with no figure keeps the plain
+     * card, so a missing picture costs nothing.
+     *
+     * Hidden from screen readers: it repeats the headline sitting on top of it.
+     */
+    options.figure
+      ? join([
+          '<div class="card__media" aria-hidden="true">',
+          image(options.figure, depth, {
+            alt: "",
+            sizes: "(max-width: 600px) 100vw, 20rem",
+          }),
+          '</div><div class="card__scrim" aria-hidden="true"></div>',
+        ])
+      : "",
+
     `<h3 class="card__title"><a href="${esc(options.href)}">${esc(options.title)}</a></h3>`,
     options.body ? `<p class="card__body">${esc(options.body)}</p>` : "",
     `<p class="card__meta">${icons.arrowRight}<span>Read the story</span></p>`,

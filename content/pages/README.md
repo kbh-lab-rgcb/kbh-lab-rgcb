@@ -24,6 +24,10 @@ The folder name decides how the page is laid out:
 | `link`, `resource` | a grid of outgoing links |
 | anything else | plain text sections with optional figures |
 
+Any page can also hold a `stories/` folder of research stories, which appear on
+that page and as cards on the home page. The Research stories page is nothing
+more than a folder with one of those in it.
+
 So a new folder called `09-facilities` gives you a normal text page with no code
 change at all.
 
