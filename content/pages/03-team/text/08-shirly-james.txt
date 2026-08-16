@@ -1,2 +1,0 @@
-name: Shirly James
-role: Assistant Technical Manager

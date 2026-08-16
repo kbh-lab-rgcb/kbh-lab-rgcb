@@ -74,6 +74,20 @@ video {
   max-width: 100%;
 }
 
+/*
+ * Every inline icon is emitted with a viewBox and no width or height, so it has
+ * no intrinsic size of its own. Dropped into a flex row it stretches to fill
+ * the space instead — which is how a small arrow ends up rendering hundreds of
+ * pixels tall and pushing its card open. Giving all of them a default tied to
+ * the surrounding text size fixes it once; the components that want a specific
+ * size still override this, because they come later in the cascade.
+ */
+svg[aria-hidden="true"] {
+  width: 1em;
+  height: 1em;
+  flex: none;
+}
+
 input,
 button,
 textarea,

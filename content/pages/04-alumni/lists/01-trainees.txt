@@ -1,0 +1,6 @@
+title: Trainees from other institutions
+
+# One person per line, as: Name — College
+# Delete these examples and add the real names.
+
+Example Name — Example College, Thiruvananthapuram

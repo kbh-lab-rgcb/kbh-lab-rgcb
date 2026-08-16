@@ -1,0 +1,4 @@
+title: MSc Biotechnology
+url: https://rgcb.res.in/msc
+description: The MSc Biotechnology programme at BRIC-RGCB. Students carry out their final project in a laboratory such as this one.
+featured: yes

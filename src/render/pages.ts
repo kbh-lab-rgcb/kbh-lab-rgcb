@@ -167,9 +167,22 @@ function groupTeam(members: Member[]): { group: TeamGroup; people: Member[] }[] 
     .filter((section) => section.people.length > 0);
 }
 
-/** The people the home page previews: doctoral students and fellows. */
-function scholars(members: Member[]): Member[] {
-  return members.filter((member) => !isLead(member) && groupFor(member).id === "scholars");
+/**
+ * The people the home page previews.
+ *
+ * Laboratory management comes first — they are who a visitor, a collaborator or
+ * a consultancy client actually deals with — and then the doctoral students and
+ * fellows. Project and support staff appear in full on the team page.
+ *
+ * `sort` is stable, so within each of the two ranks people keep the order their
+ * filenames give them.
+ */
+const HOME_GROUPS = ["technical", "scholars"];
+
+function homePeople(members: Member[]): Member[] {
+  return members
+    .filter((member) => !isLead(member) && HOME_GROUPS.includes(groupFor(member).id))
+    .sort((a, b) => HOME_GROUPS.indexOf(groupFor(a).id) - HOME_GROUPS.indexOf(groupFor(b).id));
 }
 
 function sectionsBlock(page: Page, depth: number): string {
@@ -198,7 +211,7 @@ function renderHome(site: Site, page: Page, depth: number): string {
   const linksPage = pageOf(site, "links");
 
   const members = teamPage?.members ?? [];
-  const preview = scholars(members).slice(0, 8);
+  const preview = homePeople(members).slice(0, 8);
   const lead = members.find(isLead);
   const recent = publicationsPage?.publicationYears[0];
   const featured = (linksPage?.links ?? []).filter((link) => link.featured);
@@ -268,8 +281,8 @@ function renderHome(site: Site, page: Page, depth: number): string {
         ])
       : "",
 
-    // The home page previews the research scholars only. Technical, project and
-    // support staff are listed in full on the team page rather than here.
+    // Laboratory management and the research scholars. Project and support
+    // staff are listed in full on the team page rather than here.
     preview.length > 0 && teamPage
       ? join([
           '<section class="section section--sunken"><div class="container">',
