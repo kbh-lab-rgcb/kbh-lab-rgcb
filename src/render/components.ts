@@ -5,9 +5,17 @@
  * the page being rendered. See `url.ts` for why.
  */
 
-import { attr, esc, join } from "../html.ts";
-import type { Img, Member, ProfileLink, Roster, Section } from "../content/types.ts";
-import { iconForLink } from "./icons.ts";
+import { attr, cls, esc, join } from "../html.ts";
+import type {
+  Img,
+  Member,
+  ProfileLink,
+  Publication,
+  Roster,
+  Section,
+  Story,
+} from "../content/types.ts";
+import { iconForLink, icons } from "./icons.ts";
 import { rel } from "./url.ts";
 
 /**
@@ -172,30 +180,152 @@ export function sectionHead(options: {
   ]);
 }
 
-/** A prose block, paired with its figure when one exists. */
-export function sectionBlock(section: Section, depth: number, showTitle = true): string {
-  const prose = join([
+/**
+ * The shared shape of a prose block: a text column, and a figure beside it when
+ * one has been paired.
+ *
+ * Everything optional here draws nothing at all when it is absent — a section
+ * with no kicker emits no empty kicker element — which is what lets one
+ * function serve both a two-line text section and a full research story.
+ *
+ * The kicker, callout and citations sit *inside* the text column rather than
+ * beside it. They are grid children otherwise, and a two-column block would put
+ * the "why it matters" line where the picture should be.
+ */
+function prosePanel(
+  parts: {
+    id: string;
+    eyebrow?: string;
+    title: string;
+    lead?: string;
+    html: string;
+    why?: string;
+    papers?: Publication[];
+    figure: Img | null;
+    caption: string;
+    modifier?: string;
+  },
+  depth: number,
+  showTitle = true,
+): string {
+  const papers = parts.papers ?? [];
+
+  const text = join([
+    '<div class="section-block__text">',
     '<div class="prose">',
-    showTitle ? `<h3>${esc(section.title)}</h3>` : "",
-    section.html,
+    parts.eyebrow ? `<p class="section__eyebrow">${esc(parts.eyebrow)}</p>` : "",
+    showTitle ? `<h3>${esc(parts.title)}</h3>` : "",
+    parts.lead ? `<p class="section__lead">${esc(parts.lead)}</p>` : "",
+    parts.html,
+    "</div>",
+
+    parts.why
+      ? join([
+          '<aside class="callout">',
+          `<p><span class="callout__label">Why it matters</span>${esc(parts.why)}</p>`,
+          "</aside>",
+        ])
+      : "",
+
+    papers.length > 0
+      ? join([
+          '<div class="section-block__papers">',
+          `<p class="section-block__label">${papers.length === 1 ? "Publication" : "Publications"}</p>`,
+          '<ul class="pub-list pub-list--trail">',
+          papers
+            .map(
+              (paper) =>
+                `<li class="pub"><p class="pub__citation">${paper.html}</p>${linkList(paper.links, "pub__links")}</li>`,
+            )
+            .join(""),
+          "</ul>",
+          "</div>",
+        ])
+      : "",
     "</div>",
   ]);
 
-  if (!section.figure) {
-    return `<div class="section-block"${reveal()}>${prose}</div>`;
-  }
+  const classes = cls(
+    "section-block",
+    parts.figure && "section-block--figure",
+    parts.modifier && `section-block--${parts.modifier}`,
+  );
 
   return join([
-    `<div class="section-block section-block--figure"${reveal()}>`,
-    prose,
-    '<figure class="figure">',
-    image(section.figure, depth, {
-      sizes: "(max-width: 700px) 100vw, 40vw",
-      alt: section.caption || section.title,
-    }),
-    section.caption ? `<figcaption>${esc(section.caption)}</figcaption>` : "",
-    "</figure>",
+    `<div class="${classes}" id="${esc(parts.id)}"${reveal()}>`,
+    text,
+    parts.figure
+      ? join([
+          '<figure class="figure">',
+          image(parts.figure, depth, {
+            sizes: "(max-width: 700px) 100vw, 40vw",
+            alt: parts.caption || parts.title,
+          }),
+          parts.caption ? `<figcaption>${esc(parts.caption)}</figcaption>` : "",
+          "</figure>",
+        ])
+      : "",
     "</div>",
+  ]);
+}
+
+/** A prose block, paired with its figure when one exists. */
+export function sectionBlock(section: Section, depth: number, showTitle = true): string {
+  return prosePanel(
+    {
+      id: section.slug,
+      title: section.title,
+      html: section.html,
+      figure: section.figure,
+      caption: section.caption,
+    },
+    depth,
+    showTitle,
+  );
+}
+
+/**
+ * A research story: the same block with its optional parts filled in.
+ *
+ * `papers` arrives already resolved from the publications page, so the
+ * citations shown here are the same strings that page prints — a story cannot
+ * quietly disagree with the publication list about its own papers.
+ */
+export function storyBlock(story: Story, depth: number): string {
+  return prosePanel(
+    {
+      id: story.slug,
+      eyebrow: story.tag,
+      title: story.title,
+      lead: story.lead,
+      html: story.html,
+      why: story.why,
+      papers: story.papers,
+      figure: story.figure,
+      caption: story.caption,
+      modifier: "story",
+    },
+    depth,
+  );
+}
+
+/**
+ * A story on the home page: headline, the short version, and a way in.
+ *
+ * Wears `card--link` so it inherits the lift-on-hover and the whole-card click
+ * target the institute links already use; only the meta line differs, because
+ * this one goes to a place on this site rather than out to another.
+ */
+export function storyCard(
+  options: { title: string; body: string; href: string },
+  index = 0,
+): string {
+  return join([
+    `<article class="card card--link"${reveal(index)}>`,
+    `<h3 class="card__title"><a href="${esc(options.href)}">${esc(options.title)}</a></h3>`,
+    options.body ? `<p class="card__body">${esc(options.body)}</p>` : "",
+    `<p class="card__meta">${icons.arrowRight}<span>Read the story</span></p>`,
+    "</article>",
   ]);
 }
 

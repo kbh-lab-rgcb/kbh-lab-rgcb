@@ -1,0 +1,41 @@
+title: From a spice-derived molecule to a colorectal cancer programme
+tag: Natural products · Colorectal cancer
+lead: Across two preclinical studies we traced how cardamonin can interrupt both
+  tumour formation and inflammation-driven colorectal cancer, in part by
+  reshaping microRNA networks.
+why: The work shows how a natural-product observation can become a mechanistic
+  programme: first demonstrating antitumour activity, then testing whether the
+  same molecule can interrupt the chronic inflammation that helps drive
+  colorectal cancer.
+excerpt: Two linked studies reveal how cardamonin, a spice-derived chalcone,
+  suppresses tumour-promoting and inflammatory pathways in preclinical
+  colorectal cancer models.
+papers: 10.1038/s41598-017-14253-8, 10.3390/biom11050661
+
+Colorectal cancer can emerge through more than one route. Some tumours develop
+as epithelial cells gradually acquire malignant features; others arise in the
+setting of long-standing intestinal inflammation. Our cardamonin work connected
+these routes through a single question: could a naturally occurring chalcone
+from the ginger family influence the molecular programmes that allow colorectal
+tumours to form and progress?
+
+In the first study we tested cardamonin in an azoxymethane-induced mouse model
+of colorectal cancer. Treatment began either when carcinogen exposure started or
+after early lesions were expected to have formed. In both settings cardamonin
+reduced tumour burden and was associated with lower cell proliferation, reduced
+β-catenin and NF-κB signalling, and no apparent toxicity at the doses tested.
+Experiments in human colorectal cancer cell lines extended the finding:
+cardamonin slowed growth, promoted cell-cycle arrest and apoptosis, and altered
+cellular redox balance. Global profiling also showed coordinated changes in
+microRNAs, suggesting a mechanism broader than a single signalling target.
+
+The follow-up study moved into the inflammation–cancer continuum. Cardamonin
+dampened inflammatory responses in activated macrophages, reducing nitric oxide,
+iNOS, TNF-α, IL-6 and NF-κB activity. It protected mice in a model of
+experimental colitis and reduced tumour formation in a model of
+colitis-associated colorectal cancer. Once again, microRNA analysis linked the
+response to networks that regulate inflammation and tumorigenesis. Together the
+studies define a research arc from chemoprevention to inflammation-associated
+disease, and position cardamonin as a preclinical lead for deeper mechanistic,
+pharmacological and safety evaluation — not yet as a clinical treatment or a
+dietary recommendation.

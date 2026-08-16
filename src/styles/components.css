@@ -228,6 +228,81 @@
   margin-top: var(--space-7);
 }
 
+/*
+ * The text column. Every block gets this wrapper, not only the ones that hold
+ * more than prose, so a two-column block always has exactly two grid children —
+ * otherwise a story's callout would be laid out where its picture should be.
+ */
+.section-block__text {
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+}
+
+/* -------------------------------------------------------------- Stories */
+
+/*
+ * A research story: the same block, with a topic above the heading, a
+ * standfirst below it, a line on why the work matters, and the papers it rests
+ * on. A rule above each one separates a run of them without boxing them in.
+ */
+.section-block--story {
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-6);
+}
+
+/* The topic belongs to the heading, so it sits tight against it. */
+.section-block--story .prose > .section__eyebrow + h3 {
+  margin-top: var(--space-2);
+}
+
+.section-block--story .prose > .section__lead {
+  margin-top: var(--space-3);
+  font-family: var(--font-serif);
+  line-height: var(--leading-snug);
+}
+
+/*
+ * Why it matters. A quiet panel rather than a coloured box: it is the author
+ * stepping back for a sentence, not a warning.
+ */
+.callout {
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: var(--space-4);
+  color: var(--text-muted);
+}
+
+.callout__label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.section-block__papers {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.section-block__label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* The trail under a story is a footnote to it, not the publications page. */
+.pub-list--trail {
+  gap: var(--space-4);
+  font-size: var(--text-sm);
+}
+
 /* ----------------------------------------------------------------- People */
 
 .person {

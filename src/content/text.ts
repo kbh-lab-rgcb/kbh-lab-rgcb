@@ -62,6 +62,7 @@ export function parseDoc(raw: string): Doc {
   const lines = normalized.split("\n");
   const fields: Record<string, string> = {};
   let index = 0;
+  let lastKey = "";
 
   for (; index < lines.length; index += 1) {
     const line = lines[index] ?? "";
@@ -70,10 +71,24 @@ export function parseDoc(raw: string): Doc {
       break;
     }
     const match = /^([A-Za-z][A-Za-z0-9 _-]{0,40}?)\s*:\s*(.*)$/.exec(line);
-    // A line that is not `key: value` means the header is over and this line is
-    // body. Bare prose files therefore need no header at all.
-    if (!match) break;
-    fields[match[1]!.trim().toLowerCase().replace(/[\s_]+/g, "")] = (match[2] ?? "").trim();
+    if (!match) {
+      /*
+       * An indented line carries on the key above it. Some of these values are
+       * whole sentences, and an editor whose window is narrower than the
+       * sentence will wrap it — losing half a summary into the body, where it
+       * would print as a stray paragraph, is a baffling way to be punished for
+       * pressing Enter.
+       */
+      if (lastKey && /^\s+\S/.test(line)) {
+        fields[lastKey] = `${fields[lastKey] ?? ""} ${line.trim()}`.trim();
+        continue;
+      }
+      // Otherwise the header is over and this line is body. Bare prose files
+      // therefore need no header at all.
+      break;
+    }
+    lastKey = match[1]!.trim().toLowerCase().replace(/[\s_]+/g, "");
+    fields[lastKey] = (match[2] ?? "").trim();
   }
 
   // Pull any liftable keys back out of the body, and drop those lines from it
@@ -356,6 +371,32 @@ export function parseCitation(line: string): { citation: string; links: ProfileL
     .trim();
 
   return { citation: citation ? `${citation}.` : "", links };
+}
+
+/**
+ * DOIs from a `papers:` line, however the editor pasted them.
+ *
+ * A bare DOI, a `doi:` prefix and a full doi.org address are all the same
+ * thing to whoever copied it out of a paper, so all three are accepted and
+ * separated by commas, semicolons or plain spaces. Anything that is not
+ * recognisably a DOI is dropped rather than turned into a broken link — the
+ * caller warns about the difference between what was written and what was
+ * understood.
+ *
+ * Lower-cased because DOIs are case-insensitive and these are used as map keys.
+ */
+export function parseDoiList(value: string): string[] {
+  const found: string[] = [];
+  for (const token of value.split(/[\s,;]+/)) {
+    const doi = trimId(
+      token
+        .trim()
+        .replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, "")
+        .replace(/^doi\s*[:=]\s*/i, ""),
+    ).toLowerCase();
+    if (/^10\.\d{4,9}\/\S+$/.test(doi) && !found.includes(doi)) found.push(doi);
+  }
+  return found;
 }
 
 function escapeRegExp(value: string): string {

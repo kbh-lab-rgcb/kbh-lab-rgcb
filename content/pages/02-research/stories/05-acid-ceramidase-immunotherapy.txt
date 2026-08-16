@@ -1,0 +1,39 @@
+title: Turning immune-cold colorectal tumours hot by targeting acid ceramidase
+tag: Cancer metabolism · Immunotherapy
+lead: Blocking acid ceramidase reshaped tumour-cell metabolism, triggered
+  immunogenic cell death and strengthened anti-PD-1 responses in preclinical
+  colorectal cancer models.
+why: The work connects sphingolipid metabolism to immune escape and offers a
+  two-part strategy: stress the tumour cell from within, while making the
+  surrounding microenvironment more responsive to immunotherapy.
+excerpt: Targeting acid ceramidase exposed a metabolic weakness in colorectal
+  cancer and made tumours more visible to the immune system. Combined with
+  anti-PD-1 therapy, ASAH1 inhibition increased interferon signalling and
+  cytotoxic T-cell infiltration.
+papers: 10.1016/j.jare.2023.12.013
+
+Checkpoint immunotherapy depends on an active antitumour immune response, yet
+many colorectal tumours remain immunologically cold: they contain too few
+effective cytotoxic T cells and are surrounded by signals that suppress
+immunity. We investigated whether sphingolipid metabolism helps maintain this
+resistant state, focusing on acid ceramidase (ASAH1), the enzyme that converts
+ceramide into sphingosine.
+
+The study found that ASAH1 was overexpressed in human colorectal cancer samples
+and in mouse tumours. Genetic silencing or pharmacological inhibition with
+LCL-521 pushed cancer cells towards immunogenic cell death — a form of death
+that alerts the immune system rather than remaining invisible to it. ASAH1
+blockade also disrupted the glutathione antioxidant system, increased reactive
+oxygen species and produced mitochondrial stress, linking a metabolic
+vulnerability inside tumour cells to the signals that recruit and activate
+immunity.
+
+In an immune-competent colorectal cancer model, LCL-521 reduced tumour growth as
+a single agent and enhanced the effect of anti-PD-1 treatment. The response
+included type I and type II interferon signalling, activation of M1-like
+macrophages and T cells, greater infiltration of cytotoxic CD8-positive T cells,
+and suppression of myeloid-derived suppressor cells and regulatory T cells. In
+effect, ASAH1 inhibition helped convert a cold tumour microenvironment into a
+more immune-reactive one. These preclinical findings establish acid ceramidase
+as a druggable metabolic target and support further development of ASAH1
+inhibitors in combination with checkpoint therapy.

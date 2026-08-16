@@ -19,7 +19,10 @@ import {
   sectionBlock,
   sectionHead,
   statTile,
+  storyBlock,
+  storyCard,
 } from "./components.ts";
+import { excerpt } from "../content/text.ts";
 import { icons } from "./icons.ts";
 import { hrefTo, rel } from "./url.ts";
 
@@ -186,9 +189,31 @@ function homePeople(members: Member[]): Member[] {
     .sort((a, b) => HOME_GROUPS.indexOf(groupFor(a).id) - HOME_GROUPS.indexOf(groupFor(b).id));
 }
 
+/**
+ * The page's prose blocks, in filename order.
+ *
+ * Sections and stories arrive from two different folders but share one
+ * numbering: the `NN-` prefix decides where each one sits. Moving a story above
+ * the overview is therefore a rename, which is the only ordering rule anybody
+ * editing this site has to know.
+ */
 function sectionsBlock(page: Page, depth: number): string {
-  if (page.sections.length === 0) return "";
-  return page.sections.map((section) => sectionBlock(section, depth, true)).join("");
+  const blocks = [
+    // On a tie the section goes first: prose framing tends to introduce the
+    // stories beneath it rather than follow them.
+    ...page.sections.map((section) => ({
+      order: section.order,
+      tie: 0,
+      render: () => sectionBlock(section, depth, true),
+    })),
+    ...page.stories.map((story) => ({
+      order: story.order,
+      tie: 1,
+      render: () => storyBlock(story, depth),
+    })),
+  ].sort((a, b) => a.order - b.order || a.tie - b.tie);
+
+  return blocks.map((block) => block.render()).join("");
 }
 
 /**
@@ -206,10 +231,29 @@ function introBlock(page: Page, depth: number): string {
 
 /* ------------------------------------------------------------------- Home */
 
+/**
+ * How many research stories the home page previews.
+ *
+ * The same four as the recent-publications block above it. A home page is a way
+ * in, not a contents page: the rest are one click away.
+ */
+const HOME_STORIES = 4;
+
 function renderHome(site: Site, page: Page, depth: number): string {
   const teamPage = pageOf(site, "team");
+  const researchPage = pageOf(site, "research");
   const publicationsPage = pageOf(site, "publications");
   const linksPage = pageOf(site, "links");
+
+  /*
+   * The stories, taken straight from the research page's own folder. Adding a
+   * file to `content/pages/…-research/stories/` is the whole of the work: it
+   * appears here and there together, and neither page keeps its own list that
+   * could fall out of step with the other.
+   */
+  const stories = (researchPage?.stories ?? [])
+    .filter((story) => story.onHome)
+    .slice(0, HOME_STORIES);
 
   const members = teamPage?.members ?? [];
   const preview = homePeople(members).slice(0, 8);
@@ -281,6 +325,32 @@ function renderHome(site: Site, page: Page, depth: number): string {
           '<section class="section"><div class="container"><div class="stats">',
           tiles.map((tile, index) => statTile({ ...tile, index })).join(""),
           "</div></div></section>",
+        ])
+      : "",
+
+    stories.length > 0 && researchPage
+      ? join([
+          '<section class="section"><div class="container">',
+          sectionHead({ eyebrow: "Research", title: "What we are working on" }),
+          '<div class="grid grid--cards">',
+          stories
+            .map((story, index) =>
+              storyCard(
+                {
+                  title: story.title,
+                  // Each fallback is a shorter thing the editor has already
+                  // written, so a story that only got as far as a title and a
+                  // paragraph still reads properly on the card.
+                  body: story.excerpt || story.lead || excerpt(story.text, 160),
+                  href: `${hrefTo(depth, researchPage)}#${story.slug}`,
+                },
+                index,
+              ),
+            )
+            .join(""),
+          "</div>",
+          `<p class="button-row"><a class="button button--ghost" href="${esc(hrefTo(depth, researchPage))}">All research ${icons.arrowRight}</a></p>`,
+          "</div></section>",
         ])
       : "",
 

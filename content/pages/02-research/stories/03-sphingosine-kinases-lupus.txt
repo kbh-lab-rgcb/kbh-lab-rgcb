@@ -1,0 +1,40 @@
+title: Two kinases, two outcomes — pinpointing SphK1 in lupus
+tag: Autoimmunity · Lipid signalling
+lead: A paired investigation of SphK2 and SphK1 showed that closely related
+  enzymes can play very different roles in interferon-driven autoimmunity, an
+  important distinction when choosing a therapeutic target.
+why: Comparing related enzymes prevented a misleading class-wide conclusion.
+  SphK2 influenced cell development without changing disease, whereas SphK1
+  controlled the pathogenic activation programme that drives interferon-linked
+  autoimmunity.
+excerpt: Side-by-side studies separated dendritic-cell development from
+  disease-driving activation in lupus, identifying SphK1 — not SphK2 — as the
+  enzyme linked to interferon production and kidney inflammation.
+papers: 10.1096/fj.201802535R, 10.1096/fj.201902847R
+
+Systemic lupus erythematosus is marked by an overactive type I interferon
+response that can damage multiple organs. Plasmacytoid dendritic cells are
+central to this process, because they produce large amounts of interferon after
+endosomal Toll-like receptors 7 and 9 detect nucleic acids. Our studies asked
+whether the two sphingosine kinases that generate the signalling lipid
+sphingosine 1-phosphate — SphK1 and SphK2 — influence this pathway in the same
+way.
+
+The SphK2 study produced a useful negative result. Loss of SphK2 increased
+markers of plasmacytoid dendritic cells, enhanced their differentiation and
+raised expression of TLR7 and TLR9. Yet SphK2 deficiency did not alter the
+initiation or progression of pristane-induced lupus in mice. Although the
+frequency of these cells increased, their activation state changed little, and
+SphK2 expression was not altered in patients with lupus. The findings suggested
+a role in dendritic-cell development but argued against SphK2 inhibition as a
+likely lupus therapy.
+
+SphK1 told a different story. Its loss did not prevent plasmacytoid
+dendritic-cell development, but it sharply impaired cell activation and the
+production of type I interferon and pro-inflammatory cytokines after TLR7/9
+stimulation. Genetic deletion or pharmacological inhibition reduced uptake of
+TLR9 ligands and, in the pristane model, lowered the interferon signature,
+plasmacytoid dendritic-cell activation and glomerulonephritis. SphK1 expression
+and sphingosine 1-phosphate levels were also elevated in patients with lupus.
+Read together, the studies narrow the therapeutic hypothesis from a broad enzyme
+family to a specific SphK1-dependent checkpoint, while remaining preclinical.

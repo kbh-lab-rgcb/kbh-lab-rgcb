@@ -31,6 +31,8 @@ export type Img = {
 /** A prose block: one `.txt`/`.md` file in a page's `text/` folder. */
 export type Section = {
   slug: string;
+  /** The `NN-` prefix from the filename; orders this against the stories. */
+  order: number;
   title: string;
   /** Rendered HTML of the body. */
   html: string;
@@ -41,6 +43,44 @@ export type Section = {
   /** Caption for the figure, from a `caption:` key. */
   caption: string;
   /** Every `key: value` from the header, including ones we do not use. */
+  fields: Record<string, string>;
+};
+
+/**
+ * A research story: one `.txt` file in a page's `stories/` folder.
+ *
+ * A longer, publication-grounded piece than a `Section` — it carries a kicker,
+ * a standfirst, a "why it matters" line and the papers it is built on. Every
+ * one of those is optional and renders only when supplied, so a story file with
+ * nothing but a body still produces a correct block.
+ */
+export type Story = {
+  slug: string;
+  /** The `NN-` prefix from the filename; orders this against the sections. */
+  order: number;
+  title: string;
+  /** Kicker above the heading, from `tag:`. */
+  tag: string;
+  /** One-sentence standfirst under the heading, from `lead:`. */
+  lead: string;
+  /** The "why it matters" callout, from `why:`. */
+  why: string;
+  /** Short card copy for the home page, from `excerpt:`. */
+  excerpt: string;
+  /** DOIs of the papers behind the story, in the order written. */
+  paperDois: string[];
+  /**
+   * Those DOIs looked up on the publications page, so a story's citations can
+   * never drift from the list of papers itself. A DOI that is not listed there
+   * still yields an entry — a bare DOI and its link — plus a build warning.
+   */
+  papers: Publication[];
+  /** `home: no` keeps a story off the home page. Everything else is on. */
+  onHome: boolean;
+  html: string;
+  text: string;
+  figure: Img | null;
+  caption: string;
   fields: Record<string, string>;
 };
 
@@ -144,6 +184,8 @@ export type Page = {
   /** Images in `banner/`. 0 = gradient, 1 = static banner, 2+ = carousel. */
   banners: Img[];
   sections: Section[];
+  /** Research stories from `stories/`, merged with `sections` by `order`. */
+  stories: Story[];
   members: Member[];
   publicationYears: PublicationYear[];
   links: LinkItem[];

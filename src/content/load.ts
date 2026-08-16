@@ -11,6 +11,7 @@
 import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
+import { esc } from "../html.ts";
 import { createImagePipeline, IMAGE_EXTENSIONS, listImages } from "./images.ts";
 import {
   excerpt,
@@ -19,6 +20,7 @@ import {
   initialsOf,
   parseCitation,
   parseDoc,
+  parseDoiList,
   parseName,
   plainText,
   profileLinks,
@@ -40,6 +42,7 @@ import type {
   Section,
   Site,
   SiteConfig,
+  Story,
   Warning,
 } from "./types.ts";
 
@@ -255,20 +258,36 @@ async function loadBanners(ctx: Ctx): Promise<Img[]> {
   return banners;
 }
 
+/**
+ * Pairs a slug with an image in the page's `figures/` folder.
+ *
+ * The site's one filename rule, shared by sections and stories so that
+ * `figures/04-pancreatic-stroma.jpg` pairs with `04-pancreatic-stroma.txt`
+ * whichever of the two folders that file happens to live in.
+ */
+async function figurePairer(ctx: Ctx): Promise<(slug: string, alt: string) => Promise<Img | null>> {
+  const figuresDir = join(ctx.pageDir, "figures");
+  const bySlug = new Map<string, string>();
+  for (const file of await listImages(figuresDir)) bySlug.set(parseName(file).slug, file);
+
+  return async (slug, alt) => {
+    const file = bySlug.get(slug);
+    if (!file) return null;
+    return ctx.images.process(join(figuresDir, file), `${ctx.slug}`, alt);
+  };
+}
+
 async function loadSections(ctx: Ctx): Promise<Section[]> {
   const textDir = join(ctx.pageDir, "text");
-  const figuresDir = join(ctx.pageDir, "figures");
   const files = await listTextFiles(textDir);
-  const figures = await listImages(figuresDir);
-
-  const figureBySlug = new Map<string, string>();
-  for (const file of figures) figureBySlug.set(parseName(file).slug, file);
+  const figureFor = await figurePairer(ctx);
 
   // Files already arrive in numeric-aware alphabetical order, so the `NN-`
-  // prefix orders sections without any extra sorting here.
+  // prefix orders sections without any extra sorting here. `order` is kept
+  // anyway, because the research page interleaves these with its stories.
   const sections: Section[] = [];
   for (const file of files) {
-    const { slug } = parseName(file);
+    const { order, slug } = parseName(file);
     const raw = (await readIfPresent(join(textDir, file))) ?? "";
     const { fields, body } = parseDoc(raw);
 
@@ -280,26 +299,98 @@ async function loadSections(ctx: Ctx): Promise<Section[]> {
       });
     }
 
-    const figureFile = figureBySlug.get(slug);
-    const figure = figureFile
-      ? await ctx.images.process(
-          join(figuresDir, figureFile),
-          `${ctx.slug}`,
-          field(fields, "caption", "alt") || field(fields, "title") || titleFromSlug(slug),
-        )
-      : null;
-
     sections.push({
       slug,
+      order,
       title: field(fields, "title", "heading") || titleFromSlug(slug),
       html: renderMarkdown(body),
       text: plainText(body),
-      figure,
+      figure: await figureFor(
+        slug,
+        field(fields, "caption", "alt") || field(fields, "title") || titleFromSlug(slug),
+      ),
       caption: field(fields, "caption"),
       fields,
     });
   }
   return sections;
+}
+
+/**
+ * Reads `stories/` into research stories.
+ *
+ * One file per story, and every line above the body is optional:
+ *
+ * ```text
+ * title: From a spice-derived molecule to a colorectal cancer programme
+ * tag: Natural products · Colorectal cancer
+ * lead: One sentence saying what the work found.
+ * why: Why it matters, in a sentence or two.
+ * excerpt: The short version, used on the home page.
+ * papers: 10.1038/s41598-017-14253-8, 10.3390/biom11050661
+ *
+ * The background research, in paragraphs.
+ * ```
+ *
+ * Leave a line out and that part is simply not drawn — the same only-if-added
+ * rule the profile links follow — so a file containing nothing but a title and
+ * a paragraph is a perfectly good story, and someone filling one in over
+ * several sittings never sees a half-built page.
+ */
+async function loadStories(ctx: Ctx): Promise<Story[]> {
+  const dir = join(ctx.pageDir, "stories");
+  if (!existsSync(dir)) return [];
+
+  const figureFor = await figurePairer(ctx);
+  const stories: Story[] = [];
+
+  for (const file of await listTextFiles(dir)) {
+    const { order, slug } = parseName(file);
+    const raw = (await readIfPresent(join(dir, file))) ?? "";
+    const { fields, body } = parseDoc(raw);
+    const title = field(fields, "title", "heading") || titleFromSlug(slug);
+
+    if (!body.trim() && !field(fields, "title")) {
+      ctx.warnings.push({
+        file: `${ctx.relDir}/stories/${file}`,
+        message: "This story file is empty.",
+        fallback: "A heading was shown using the file name. See the README in that folder.",
+      });
+    }
+
+    const papers = field(fields, "papers", "paper", "publications", "doi");
+    const paperDois = parseDoiList(papers);
+    if (papers && paperDois.length === 0) {
+      ctx.warnings.push({
+        file: `${ctx.relDir}/stories/${file}`,
+        message: `No DOI could be read from “papers: ${papers}”.`,
+        fallback:
+          "The story was published without its papers. A DOI looks like 10.3390/biom11050661.",
+      });
+    }
+
+    stories.push({
+      slug,
+      order,
+      title,
+      tag: field(fields, "tag", "eyebrow", "kicker", "topic"),
+      lead: field(fields, "lead", "standfirst", "summary"),
+      why: field(fields, "why", "whyitmatters", "significance"),
+      excerpt: field(fields, "excerpt", "card", "short"),
+      paperDois,
+      // Filled in once every page is loaded, by `resolveStoryPapers`.
+      papers: [],
+      // Silence is consent: a story is on the home page unless it says not to,
+      // so adding a file is the only step there is.
+      onHome: !/^(no|n|false|off|0)$/i.test(field(fields, "home", "homepage")),
+      html: renderMarkdown(body),
+      text: plainText(body),
+      figure: await figureFor(slug, field(fields, "caption", "alt") || title),
+      caption: field(fields, "caption"),
+      fields,
+    });
+  }
+  return stories;
 }
 
 /**
@@ -542,6 +633,62 @@ async function loadGallery(ctx: Ctx): Promise<GalleryItem[]> {
  * Entry point
  * ------------------------------------------------------------------ */
 
+/**
+ * Turn each story's `papers:` DOIs back into the citations the publications
+ * page prints.
+ *
+ * Runs once every page is loaded, because a story on the research page cites
+ * papers listed on another page entirely. The point of citing by DOI is that
+ * there is one copy of each citation on the site: correct a typo in an author
+ * list and it is corrected everywhere it appears.
+ *
+ * A DOI nobody has listed yet still renders — as itself, with a working link —
+ * and produces a warning naming the folder to add it to. That is the usual
+ * bargain here: the page is never worse than slightly plain, and the editor is
+ * told what would make it better.
+ */
+function resolveStoryPapers(
+  pages: Page[],
+  sources: { relDir: string; stories: Story[] }[],
+  warnings: Warning[],
+): void {
+  const byDoi = new Map<string, Publication>();
+  for (const page of pages) {
+    for (const year of page.publicationYears) {
+      for (const item of year.items) {
+        for (const link of item.links) {
+          if (link.kind !== "doi") continue;
+          const doi = link.url.replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, "").toLowerCase();
+          if (!byDoi.has(doi)) byDoi.set(doi, item);
+        }
+      }
+    }
+  }
+
+  for (const { relDir, stories } of sources) {
+    for (const story of stories) {
+      story.papers = story.paperDois.map((doi) => {
+        const known = byDoi.get(doi);
+        if (known) return known;
+
+        warnings.push({
+          file: `${relDir}/stories/`,
+          message: `“${story.title}” cites ${doi}, which is not on the publications page.`,
+          fallback:
+            "The DOI was shown on its own with a link. Add the paper to " +
+            "content/pages/05-publications/years/ for the full citation.",
+        });
+        return {
+          year: "",
+          citation: doi,
+          html: esc(doi),
+          links: [{ kind: "doi", label: "DOI", url: `https://doi.org/${doi}` }],
+        };
+      });
+    }
+  }
+}
+
 export async function loadSite(options: {
   contentDir: string;
   outRoot: string;
@@ -567,6 +714,7 @@ export async function loadSite(options: {
   }
 
   const pages: Page[] = [];
+  const storySources: { relDir: string; stories: Story[] }[] = [];
   for (const folder of folders) {
     const { order, slug } = parseName(folder);
     const pageDir = join(pagesRoot, folder);
@@ -591,6 +739,7 @@ export async function loadSite(options: {
       outDir: kind === "home" ? "" : slug,
       banners: await loadBanners(ctx),
       sections: textFolderIsPaired ? [] : await loadSections(ctx),
+      stories: await loadStories(ctx),
       members:
         kind === "team" || kind === "alumni" ? await loadMembers(ctx, kind === "alumni") : [],
       publicationYears:
@@ -602,7 +751,10 @@ export async function loadSite(options: {
     };
 
     pages.push(page);
+    if (page.stories.length > 0) storySources.push({ relDir, stories: page.stories });
   }
+
+  resolveStoryPapers(pages, storySources, warnings);
 
   pages.sort((a, b) => a.order - b.order || a.slug.localeCompare(b.slug));
 

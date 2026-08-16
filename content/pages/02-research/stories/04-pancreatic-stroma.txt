@@ -1,0 +1,39 @@
+title: Breaking the stromal barrier to pancreatic cancer treatment
+tag: Pancreatic cancer · Tumour microenvironment
+lead: By disrupting the S1PR1/STAT3 signalling loop, the multiple sclerosis drug
+  FTY720 made pancreatic tumours more responsive to gemcitabine in preclinical
+  models and weakened the fibrotic microenvironment that protects them.
+why: This strategy treats the tumour and its protective niche as one therapeutic
+  problem, using S1PR1/STAT3 blockade to weaken desmoplasia and improve
+  chemotherapy response at the same time.
+excerpt: FTY720 disrupted an S1PR1/STAT3 signalling loop that supports pancreatic
+  tumour growth, desmoplasia and drug resistance. Combined with gemcitabine it
+  shrank tumours and weakened the fibrotic microenvironment in preclinical
+  models.
+papers: 10.7150/thno.25308
+
+Pancreatic cancer is difficult to treat not only because of the cancer cells
+themselves, but because tumours are surrounded by a dense, fibrotic stroma known
+as desmoplasia. This tissue barrier supports persistent oncogenic signalling,
+restricts drug response and contributes to resistance to gemcitabine. Our study
+focused on a reinforcing loop between sphingosine 1-phosphate receptor 1 (S1PR1)
+and the transcription factor STAT3 — two signals that connect tumour growth with
+the surrounding microenvironment.
+
+We tested FTY720, or fingolimod, an approved treatment for multiple sclerosis
+that can act as a functional antagonist of S1PR1. In human and mouse pancreatic
+cancer cells, FTY720 inhibited growth, increased apoptosis, induced cell-cycle
+arrest and enhanced the effects of gemcitabine. The combination disrupted
+mitochondrial membrane potential, weakened the S1PR1/STAT3 loop, and inhibited
+the epithelial-to-mesenchymal transition associated with aggressive disease.
+
+In mouse models the combination reduced tumour size and increased tumour-cell
+death while suppressing NF-κB, S1PR1/STAT3 and Sonic hedgehog signalling. It
+also reduced extracellular-matrix deposition and activation of pancreatic
+stellate cells, both key features of desmoplasia; altered proteins involved in
+gemcitabine transport and metabolism; and restored activity of the tumour
+suppressor PP2A. The result is a proof of principle for drug repurposing:
+targeting a lipid-signalling circuit may both attack pancreatic cancer cells and
+loosen the stromal defences that make chemotherapy less effective. Clinical
+translation would still require dedicated evaluation of dosing, safety and
+immune effects in patients with cancer.
