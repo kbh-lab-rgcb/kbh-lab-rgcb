@@ -1,4 +1,4 @@
-name: Jaskirat Sing Sandhu
+name: Jaskirat Sing Sandu
 role: BRIC-RGCB MSc 
 year: 2019
 thesis: Pancreatic Ductal Adenocarcinoma

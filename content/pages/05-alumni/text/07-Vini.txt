@@ -1,0 +1,5 @@
+name: Dr. Vini
+role: DBT-Women Scientist 
+year: 2024
+thesis: Finding novel targets in triple-negative breast cancer
+now: DBT Ramalingaswami Fellow at SCTIMT, Thiruvananthapuram
