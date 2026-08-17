@@ -1,0 +1,5 @@
+name: Jinu Sebastian
+role: Project Fellow
+year: 2022
+thesis: Ferroptosis induction by Sphingolipid targeting drugs in colorectal adenocarcinoma
+now: Viral Research Institute, UK 

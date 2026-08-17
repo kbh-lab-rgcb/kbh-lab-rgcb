@@ -1,0 +1,5 @@
+name: Susmilee
+role: BRIC-RGCB MSc 
+year: 2026
+thesis: Pancreatic Ductal Adenocarcinoma
+now: 
