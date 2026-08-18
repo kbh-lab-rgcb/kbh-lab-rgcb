@@ -1,6 +1,7 @@
 name: Arun V
 role: PhD Student
 focus: Obesity-driven pancreatic cancer
+profile: yes
 
 Arun studies how the metabolic state of the host shapes pancreatic tumours,
 asking how obesity reshapes the tumour microenvironment and the immune response
