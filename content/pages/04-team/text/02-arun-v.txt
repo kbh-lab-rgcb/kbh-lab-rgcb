@@ -1,8 +1,8 @@
-name: Arun V
+name: Arun Viswanathan
 role: PhD Student
 focus: Obesity-driven pancreatic cancer
 profile: yes
-
+papers:10.1016/j.jare.2023.12.013, 10.1016/j.plipres.2023.101251
 Arun studies how the metabolic state of the host shapes pancreatic tumours,
 asking how obesity reshapes the tumour microenvironment and the immune response
 within it.
