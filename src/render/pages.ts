@@ -6,7 +6,7 @@
  */
 
 import { esc, join } from "../html.ts";
-import type { Member, Page, Site } from "../content/types.ts";
+import type { Album, GalleryItem, Member, Page, Site } from "../content/types.ts";
 import {
   alumnusCard,
   emptyNote,
@@ -558,35 +558,107 @@ function renderPublications(page: Page, depth: number, folder: string): string {
 
 /* ---------------------------------------------------------------- Gallery */
 
+/** One photo as a lightbox button. Shared by the loose grid and every album. */
+function photoButton(item: GalleryItem, depth: number, index: number): string {
+  return join([
+    `<button class="gallery__item" type="button" data-lightbox`,
+    // The lightbox shows the largest variant, not the thumbnail.
+    ` data-full="${esc(rel(depth, item.photo.src))}"`,
+    ` data-caption="${esc(item.caption || item.title)}"`,
+    `${reveal(index)}>`,
+    image(item.photo, depth, {
+      alt: item.caption || item.title,
+      sizes: "(max-width: 600px) 50vw, 14rem",
+    }),
+    item.caption ? `<span class="gallery__caption">${esc(item.caption)}</span>` : "",
+    "</button>",
+  ]);
+}
+
+/**
+ * A grid of photos.
+ *
+ * `data-lightbox-group` scopes the arrows: open a photo from the conference
+ * album and pressing → walks that album, rather than running on through every
+ * photograph on the page.
+ */
+function photoGrid(items: GalleryItem[], depth: number, group: string): string {
+  return join([
+    `<div class="gallery" data-lightbox-group="${esc(group)}">`,
+    items.map((item, index) => photoButton(item, depth, index)).join(""),
+    "</div>",
+  ]);
+}
+
+/**
+ * An album: a stack of prints that opens into a grid.
+ *
+ * A native `<details>`, like the alumni rosters — it opens with JavaScript
+ * switched off, it is keyboard operable for free, and the browser's own
+ * find-in-page opens it to reveal a match inside. The closed state stacks three
+ * of the album's photos on top of each other, because a single flat thumbnail
+ * gives the reader no hint that there is more behind it.
+ */
+function albumBlock(album: Album, depth: number, index: number): string {
+  const sheets = [album.cover, ...album.items.filter((item) => item !== album.cover)].slice(0, 3);
+  const total = album.items.length;
+
+  return join([
+    `<details class="album"${reveal(index)}>`,
+    '<summary class="album__summary">',
+    '<span class="album__stack">',
+    // Painted back to front, so the cover ends up on top with no z-index race.
+    sheets
+      .map((item, position) =>
+        join([
+          `<span class="album__sheet" data-sheet="${position + 1}">`,
+          image(item.photo, depth, { alt: "", sizes: "(max-width: 700px) 45vw, 16rem" }),
+          "</span>",
+        ]),
+      )
+      .reverse()
+      .join(""),
+    "</span>",
+    '<span class="album__meta">',
+    `<span class="album__title">${esc(album.title)}</span>`,
+    album.date ? `<span class="album__date">${esc(album.date)}</span>` : "",
+    `<span class="album__count">${total} photo${total === 1 ? "" : "s"}</span>`,
+    album.caption ? `<span class="album__caption">${esc(album.caption)}</span>` : "",
+    "</span>",
+    "</summary>",
+    `<div class="album__body">`,
+    photoGrid(album.items, depth, album.slug),
+    "</div>",
+    "</details>",
+  ]);
+}
+
 function renderGallery(page: Page, depth: number, folder: string): string {
+  const loose = page.gallery;
+  const albums = page.albums;
+
   return join([
     introBlock(page, depth),
     '<section class="section"><div class="container">',
-    page.gallery.length > 0
+    albums.length > 0
       ? join([
-          '<div class="gallery">',
-          page.gallery
-            .map((item, index) =>
-              join([
-                `<button class="gallery__item" type="button" data-lightbox`,
-                // The lightbox shows the largest variant, not the thumbnail.
-                ` data-full="${esc(rel(depth, item.photo.src))}"`,
-                ` data-caption="${esc(item.caption || item.title)}"`,
-                `${reveal(index)}>`,
-                image(item.photo, depth, {
-                  alt: item.caption || item.title,
-                  sizes: "(max-width: 600px) 50vw, 14rem",
-                }),
-                item.caption
-                  ? `<span class="gallery__caption">${esc(item.caption)}</span>`
-                  : "",
-                "</button>",
-              ]),
-            )
-            .join(""),
+          // The heading only earns its space when there is a second group of
+          // photos below it to be distinguished from.
+          loose.length > 0 ? sectionHead({ title: "Albums" }) : "",
+          '<div class="album-grid">',
+          albums.map((album, index) => albumBlock(album, depth, index)).join(""),
           "</div>",
         ])
-      : emptyNote("Add photos to", `${folder}/photos/`),
+      : "",
+    loose.length > 0
+      ? join([
+          albums.length > 0 ? sectionHead({ title: "More photos" }) : "",
+          photoGrid(loose, depth, "photos"),
+        ])
+      : "",
+    loose.length === 0 && albums.length === 0
+      ? emptyNote("Add photos to", `${folder}/photos/`)
+      : "",
     "</div></section>",
   ]);
 }

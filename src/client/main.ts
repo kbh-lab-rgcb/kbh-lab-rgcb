@@ -216,10 +216,25 @@ function setupLightbox(): void {
   const items = [...document.querySelectorAll<HTMLButtonElement>("[data-lightbox]")];
   if (items.length === 0) return;
 
-  const shots: Shot[] = items.map((item) => ({
-    src: item.dataset.full ?? "",
-    caption: item.dataset.caption ?? "",
-  }));
+  /**
+   * Photos grouped by the grid they sit in.
+   *
+   * Each album is its own group, so arrowing out of the last photo of the
+   * Christmas album wraps back to its first rather than landing in a
+   * conference nobody asked to see. A page with one flat grid has one group,
+   * which behaves exactly as it did before albums existed.
+   */
+  const groups = new Map<Element, Shot[]>();
+  const openings = items.map((item) => {
+    const key = item.closest("[data-lightbox-group]") ?? document.body;
+    let shots = groups.get(key);
+    if (!shots) {
+      shots = [];
+      groups.set(key, shots);
+    }
+    shots.push({ src: item.dataset.full ?? "", caption: item.dataset.caption ?? "" });
+    return { shots, index: shots.length - 1 };
+  });
 
   const dialog = document.createElement("dialog");
   dialog.className = "lightbox";
@@ -235,6 +250,8 @@ function setupLightbox(): void {
 
   const image = dialog.querySelector("img")!;
   const caption = dialog.querySelector<HTMLElement>(".lightbox__caption")!;
+  const navs = [...dialog.querySelectorAll<HTMLButtonElement>(".lightbox__nav")];
+  let shots: Shot[] = openings[0]!.shots;
   let index = 0;
 
   const show = (next: number) => {
@@ -244,11 +261,15 @@ function setupLightbox(): void {
     image.alt = shot.caption;
     caption.textContent = shot.caption;
     caption.hidden = !shot.caption;
+    // A single photo has nowhere to go; arrows there are a false promise.
+    navs.forEach((nav) => (nav.hidden = shots.length < 2));
   };
 
   items.forEach((item, i) =>
     item.addEventListener("click", () => {
-      show(i);
+      const opening = openings[i]!;
+      shots = opening.shots;
+      show(opening.index);
       dialog.showModal();
     }),
   );

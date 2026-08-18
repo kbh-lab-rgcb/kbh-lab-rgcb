@@ -9,7 +9,9 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const result = await buildSite({ root });
 
 console.log(
-  `Built ${result.pageCount} page${result.pageCount === 1 ? "" : "s"} into docs/ in ${result.ms}ms`,
+  `Built ${result.pageCount} page${result.pageCount === 1 ? "" : "s"}` +
+    (result.profileCount > 0 ? ` and ${result.profileCount} personal profile(s)` : "") +
+    ` into docs/ in ${result.ms}ms`,
 );
 for (const page of result.site.pages) {
   const counts = [
@@ -19,6 +21,8 @@ for (const page of result.site.pages) {
     page.publicationYears.length &&
       `${page.publicationYears.reduce((total, year) => total + year.items.length, 0)} papers`,
     page.gallery.length && `${page.gallery.length} photos`,
+    page.albums.length &&
+      `${page.albums.length} album(s) holding ${page.albums.reduce((total, album) => total + album.items.length, 0)} photos`,
     page.links.length && `${page.links.length} links`,
     page.banners.length && `${page.banners.length} banner image(s)`,
   ].filter(Boolean);

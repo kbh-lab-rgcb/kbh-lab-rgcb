@@ -21,6 +21,7 @@ import {
   parseCitation,
   parseDoc,
   parseDoiList,
+  parseProfile,
   parseName,
   plainText,
   profileLinks,
@@ -29,6 +30,7 @@ import {
   titleFromSlug,
 } from "./text.ts";
 import type {
+  Album,
   GalleryItem,
   Img,
   LinkItem,
@@ -459,6 +461,20 @@ async function loadMembers(ctx: Ctx, isAlumni: boolean): Promise<Member[]> {
       });
     }
 
+    // `## Heading` blocks are a CV, not a card. They are split off here so the
+    // team page stays a page of cards however long anybody's CV becomes.
+    const { intro, sections } = parseProfile(body);
+    const wantsPage = flag(field(fields, "profile", "page", "ownpage"));
+
+    if (sections.length > 0 && !wantsPage) {
+      ctx.warnings.push({
+        file: `${ctx.relDir}/text/${entry.text}`,
+        message: "This person has extra `## sections` but no `profile: yes` line.",
+        fallback:
+          "The sections are shown on their card for now. Add `profile: yes` to give them a page of their own instead.",
+      });
+    }
+
     members.push({
       slug,
       name,
@@ -468,10 +484,14 @@ async function loadMembers(ctx: Ctx, isAlumni: boolean): Promise<Member[]> {
       year: field(fields, "year", "graduated"),
       thesis: field(fields, "thesis", "title"),
       now: field(fields, "now", "current", "currentposition", "placement"),
-      html: renderMarkdown(body),
-      text: plainText(body),
+      // Without a page to put them on, the sections stay on the card: content
+      // somebody typed is never silently dropped.
+      html: renderMarkdown(wantsPage ? intro : body),
+      text: plainText(wantsPage ? intro : body),
       photo,
       initials: initialsOf(name),
+      profilePath: wantsPage ? `${ctx.slug}/${slug}/` : "",
+      sections,
       links: profileLinks(fields),
       fields,
     });
@@ -604,29 +624,114 @@ async function loadRosters(ctx: Ctx): Promise<Roster[]> {
   return rosters;
 }
 
-async function loadGallery(ctx: Ctx): Promise<GalleryItem[]> {
-  const photosDir = join(ctx.pageDir, "photos");
-  const textDir = join(ctx.pageDir, "text");
-  const photoFiles = await listImages(photosDir);
-  const textFiles = await listTextFiles(textDir);
-
+/**
+ * The photos in one folder, with their optional captions.
+ *
+ * Captions are genuinely optional — requiring a text file per photo would make
+ * uploading an album unbearable. They are looked for in `captionDirs`, in
+ * order: beside the photo, which is how an album is written so that one folder
+ * holds everything about it, and then the page's `text/` folder, which is how
+ * the flat gallery has always been written.
+ */
+async function loadPhotos(
+  ctx: Ctx,
+  photosDir: string,
+  assetDir: string,
+  captionDirs: string[],
+): Promise<GalleryItem[]> {
   const textBySlug = new Map<string, string>();
-  for (const file of textFiles) textBySlug.set(parseName(file).slug, file);
+  for (const dir of captionDirs) {
+    for (const file of await listTextFiles(dir)) {
+      const { slug } = parseName(file);
+      // `album.txt` describes the folder itself, not a photo in it.
+      if (slug === "album") continue;
+      if (!textBySlug.has(slug)) textBySlug.set(slug, join(dir, file));
+    }
+  }
 
   const items: GalleryItem[] = [];
-  for (const file of photoFiles) {
+  for (const file of await listImages(photosDir)) {
     const { slug } = parseName(file);
-    // Captions are genuinely optional here — requiring a text file per photo
-    // would make uploading an album unbearable.
-    const textFile = textBySlug.get(slug);
-    const raw = textFile ? ((await readIfPresent(join(textDir, textFile))) ?? "") : "";
+    const textPath = textBySlug.get(slug);
+    const raw = textPath ? ((await readIfPresent(textPath)) ?? "") : "";
     const { fields, body } = parseDoc(raw);
     const title = field(fields, "title", "caption") || titleFromSlug(slug);
-    const photo = await ctx.images.process(join(photosDir, file), `${ctx.slug}`, title);
+    const photo = await ctx.images.process(join(photosDir, file), assetDir, title);
     if (!photo) continue;
     items.push({ slug, title, caption: field(fields, "caption") || plainText(body), photo });
   }
   return items;
+}
+
+/** Photos dropped straight into `photos/`, outside any album. */
+async function loadGallery(ctx: Ctx): Promise<GalleryItem[]> {
+  return loadPhotos(ctx, join(ctx.pageDir, "photos"), ctx.slug, [join(ctx.pageDir, "text")]);
+}
+
+/**
+ * One album per subfolder of `photos/`.
+ *
+ * Making a folder the entire authoring interface is the point: an editor who
+ * can drag photos into `photos/` can just as easily drag them into
+ * `photos/christmas-2025/`, and that alone produces a titled album. `album.txt`
+ * only exists for the cases where the folder name is not a good enough title.
+ *
+ * Order is by folder name, as everywhere else in this file, so `01-` prefixes
+ * put albums in a deliberate sequence and unprefixed folders sort after them.
+ */
+async function loadAlbums(ctx: Ctx): Promise<Album[]> {
+  const photosDir = join(ctx.pageDir, "photos");
+  const albums: Album[] = [];
+
+  for (const folder of await listDirs(photosDir)) {
+    const { slug } = parseName(folder);
+    const dir = join(photosDir, folder);
+    const raw =
+      (await readIfPresent(join(dir, "album.txt"))) ??
+      (await readIfPresent(join(dir, "album.md"))) ??
+      "";
+    const { fields, body } = parseDoc(raw);
+
+    // Each album gets its own folder under `assets/`, so a build output stays
+    // as browsable as the content folder it came from.
+    const items = await loadPhotos(ctx, dir, `${ctx.slug}/${slug}`, [
+      dir,
+      join(ctx.pageDir, "text"),
+    ]);
+
+    if (items.length === 0) {
+      ctx.warnings.push({
+        file: `${ctx.relDir}/photos/${folder}`,
+        message: "This album folder has no photos in it.",
+        fallback: "The album was left out. Add photos to the folder, or delete it.",
+      });
+      continue;
+    }
+
+    // The cover is the photo on top of the stack. Naming one is optional; the
+    // first photo in the folder is a perfectly good cover.
+    const wanted = field(fields, "cover", "thumbnail");
+    const wantedSlug = wanted ? parseName(wanted).slug : "";
+    const cover = items.find((item) => item.slug === wantedSlug) ?? items[0]!;
+    if (wantedSlug && cover.slug !== wantedSlug) {
+      ctx.warnings.push({
+        file: `${ctx.relDir}/photos/${folder}/album.txt`,
+        message: `No photo in this album is called "${wanted}", so it cannot be the cover.`,
+        fallback: `The first photo in the folder is on top of the stack instead.`,
+      });
+    }
+
+    albums.push({
+      slug,
+      title: field(fields, "title", "name") || titleFromSlug(slug),
+      date: field(fields, "date", "when"),
+      caption: field(fields, "caption", "description", "about") || plainText(body),
+      cover,
+      items,
+    });
+  }
+
+  return albums;
 }
 
 /* ------------------------------------------------------------------ *
@@ -746,6 +851,7 @@ export async function loadSite(options: {
         kind === "publications" ? await loadPublications(ctx, config.labAuthors) : [],
       links: kind === "links" ? await loadLinks(ctx) : [],
       gallery: kind === "gallery" ? await loadGallery(ctx) : [],
+      albums: kind === "gallery" ? await loadAlbums(ctx) : [],
       rosters: await loadRosters(ctx),
       fields: meta.fields,
     };

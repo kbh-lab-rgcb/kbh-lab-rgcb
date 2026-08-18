@@ -709,6 +709,184 @@
   transform: none;
 }
 
+/* ----------------------------------------------------------------- Albums */
+
+/*
+ * An album reads as a pile of prints on a desk: the cover square on top, two
+ * more photos slipping out from under it. That is the whole reason the closed
+ * state exists — a flat thumbnail would say "one photo", and the stack says
+ * "a set of them, click me". Opening one hands its row of the grid over to the
+ * photographs themselves.
+ */
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));
+  /* Wider than the photo grid: the sheets fan outside their own box. */
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.album {
+  border-radius: var(--radius-lg);
+  transition: background var(--transition);
+}
+
+.album[open] {
+  /* The opened album takes the full width; a grid of photos inside one narrow
+     column of a grid would be two thumbnails wide. */
+  grid-column: 1 / -1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.album__summary {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  cursor: pointer;
+  list-style: none; /* Safari shows its own triangle without this. */
+  border-radius: var(--radius-lg);
+}
+
+.album__summary::-webkit-details-marker {
+  display: none;
+}
+
+.album__summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.album__stack {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+}
+
+.album__sheet {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transform-origin: center bottom;
+  transition: transform var(--transition), box-shadow var(--transition),
+    border-color var(--transition), opacity var(--transition);
+}
+
+.album__sheet img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 1 is the cover and stays square to the reader; 2 and 3 lean out behind it. */
+.album__sheet[data-sheet="2"] {
+  transform: rotate(3.5deg) translate(4px, -4px);
+}
+
+.album__sheet[data-sheet="3"] {
+  transform: rotate(-4.5deg) translate(-5px, -7px);
+}
+
+.album__summary:hover .album__sheet[data-sheet="1"],
+.album__summary:focus-visible .album__sheet[data-sheet="1"] {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-lg);
+}
+
+.album__summary:hover .album__sheet[data-sheet="2"],
+.album__summary:focus-visible .album__sheet[data-sheet="2"] {
+  transform: rotate(7deg) translate(12px, -8px);
+}
+
+.album__summary:hover .album__sheet[data-sheet="3"],
+.album__summary:focus-visible .album__sheet[data-sheet="3"] {
+  transform: rotate(-8deg) translate(-13px, -11px);
+}
+
+.album__meta {
+  display: grid;
+  gap: 0.15rem;
+  padding-inline: var(--space-2);
+}
+
+.album__title {
+  font-weight: 650;
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
+}
+
+/* Our own marker, so it can rotate when the album opens. */
+.album__title::after {
+  content: "";
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-left: 0.45rem;
+  vertical-align: 0.15rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  opacity: 0.5;
+  transition: transform var(--transition);
+}
+
+.album[open] .album__title::after {
+  transform: rotate(-135deg);
+}
+
+.album__date,
+.album__count {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.album__count {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+
+.album__caption {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: var(--leading-snug);
+}
+
+/* Open: the stack has done its job, so it shrinks to a marker beside the title
+   and gives the width back to the photographs. */
+.album[open] .album__summary {
+  grid-template-columns: 4.5rem 1fr;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.album[open] .album__sheet[data-sheet="2"],
+.album[open] .album__sheet[data-sheet="3"] {
+  opacity: 0;
+}
+
+.album__body {
+  padding: 0 var(--space-4) var(--space-4);
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-4);
+}
+
+@media (max-width: 600px) {
+  .album-grid {
+    gap: var(--space-5);
+  }
+  .album__body {
+    padding-inline: var(--space-2);
+  }
+}
 /* --------------------------------------------------------------- Lightbox */
 
 .lightbox {
@@ -792,6 +970,12 @@
 .lightbox__nav--prev {
   left: var(--space-4);
   right: auto;
+}
+
+/* An album of one photo has nowhere to arrow to, so the script hides these —
+   which needs saying out loud, because `display: grid` above beats `[hidden]`. */
+.lightbox__nav[hidden] {
+  display: none;
 }
 
 .lightbox__close:hover,
@@ -1073,6 +1257,185 @@
 .roster__affiliation {
   color: var(--text-muted);
   font-size: var(--text-xs);
+}
+
+/* --------------------------------------------------------------- Profiles */
+
+/* The "Full profile" line at the foot of a card that has a page behind it. */
+.person__more {
+  margin-top: auto;
+  padding-top: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.person__more a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.person__more a:hover {
+  text-decoration: underline;
+}
+
+.person__more svg {
+  width: 1em;
+  height: 1em;
+  transition: transform var(--transition);
+}
+
+.person__more a:hover svg {
+  transform: translateX(3px);
+}
+
+.person__name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.person__name a:hover {
+  color: var(--accent);
+}
+
+.person__portrait-link {
+  display: block;
+  height: 100%;
+}
+
+.profile__back {
+  margin-bottom: var(--space-5);
+  font-size: var(--text-sm);
+}
+
+.profile__back a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.profile__back a:hover {
+  color: var(--accent);
+}
+
+.profile__back svg {
+  width: 1em;
+  height: 1em;
+}
+
+.profile__head {
+  display: grid;
+  grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+  margin-bottom: var(--space-6);
+}
+
+.profile__portrait {
+  aspect-ratio: 4 / 5;
+}
+
+.profile__intro {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+}
+
+.profile__focus {
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+  color: var(--text);
+}
+
+.profile__email {
+  font-size: var(--text-sm);
+}
+
+.profile__bio {
+  margin-bottom: var(--space-7);
+}
+
+.profile-section {
+  margin-bottom: var(--space-7);
+}
+
+.profile-section__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--text-xl);
+}
+
+.profile-section__count {
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+/*
+ * A CV is two columns, and the left one is a scannable list of years or posts.
+ * The term column is fixed rather than shrink-to-fit so that the details start
+ * on the same line down the whole page — the eye reads the dates as a column,
+ * which is the entire point of writing a CV this way.
+ */
+.cv {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.cv__row {
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+  gap: var(--space-2) var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.cv__row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.cv__term {
+  font-weight: 650;
+  font-size: var(--text-sm);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.cv__detail {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: var(--leading-normal);
+}
+
+.cv--facts .cv__term {
+  color: var(--text-faint);
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .profile__head {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+  .profile__portrait {
+    max-width: 12rem;
+  }
+  .cv__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.15rem;
+  }
 }
 
 /* --------------------------------------------------------------- Notices */

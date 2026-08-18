@@ -1,0 +1,28 @@
+name: K B Harikumar
+role: Group Leader
+email: kbh@example.org
+focus: What this person works on
+profile: yes
+
+The part of the biography that stays on the card.
+
+## Positions
+
+Scientist F
+Institute of Fixtures
+
+Post-doctoral Associate
+University of Examples
+
+## Education
+
+PhD Fixture Studies, 2008 — University of Examples
+MSc Fixture Studies, 2001 — College of Samples
+
+## Interests
+
+A prose section written as ordinary sentences, which should stay prose rather
+than being folded into a two-column table it was never meant to be.
+
+- a bulleted list
+- of two things

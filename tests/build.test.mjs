@@ -198,6 +198,85 @@ test("profile keys typed below the biography still work", () => {
   assert.match(team, /href="https:\/\/example\.org\/late"/);
 });
 
+/* --------------------------------------------------------- Personal pages */
+
+test("profile: yes gives a person a page of their own", () => {
+  const page = fixture["team/k-b-harikumar/index.html"];
+  assert.ok(page, "the profile page should be generated");
+  assert.match(page, /<h1>K B Harikumar<\/h1>/);
+  assert.match(page, /<title>K B Harikumar/);
+  // It borrows the team page's shell, so the way back is always in front of you.
+  assert.match(page, /Back to Team/);
+});
+
+test("a person without the flag gets no page and no link to one", () => {
+  assert.ok(!fixture["team/no-flag/index.html"], "no page should be generated");
+  const team = fixture["team/index.html"];
+  const card = team.slice(team.indexOf("No Flag"));
+  assert.ok(!card.slice(0, card.indexOf("</article>")).includes("Full profile"));
+});
+
+test("sections written without the flag stay on the card rather than vanishing", () => {
+  const team = fixture["team/index.html"];
+  assert.match(team, /Something they won/);
+  assert.ok(
+    fixtureResult.warnings.some((warning) => /no `profile: yes` line/.test(warning.message)),
+    "the editor should be told how to give them a page",
+  );
+});
+
+test("the card links to the profile from both the portrait and the name", () => {
+  const team = fixture["team/index.html"];
+  assert.match(team, /class="person__portrait-link" href="\.\.\/team\/k-b-harikumar\/"/);
+  assert.match(team, /<h3 class="person__name"><a href="\.\.\/team\/k-b-harikumar\/">K B Harikumar/);
+  assert.match(team, /Full profile/);
+});
+
+test("a person's own page is not in the navigation", () => {
+  for (const [name, html] of Object.entries(fixture)) {
+    assert.ok(
+      !html.includes('class="nav__link" href="../team/k-b-harikumar/"'),
+      `${name} should not carry a nav link to a personal page`,
+    );
+  }
+});
+
+test("dashed lines become two-column CV rows", () => {
+  const page = fixture["team/k-b-harikumar/index.html"];
+  assert.match(page, /<dt class="cv__term">PhD Fixture Studies, 2008<\/dt>/);
+  assert.match(page, /<dd class="cv__detail">University of Examples<\/dd>/);
+});
+
+test("a CV pasted as term-then-detail lines becomes rows too", () => {
+  const page = fixture["team/k-b-harikumar/index.html"];
+  assert.match(page, /<dt class="cv__term">Scientist F<\/dt>/);
+  assert.match(page, /<dd class="cv__detail">Institute of Fixtures<\/dd>/);
+  assert.match(page, /<dt class="cv__term">Post-doctoral Associate<\/dt>/);
+});
+
+test("a prose section stays prose instead of being folded into a table", () => {
+  const page = fixture["team/k-b-harikumar/index.html"];
+  const interests = page.slice(page.indexOf("Interests"));
+  const section = interests.slice(0, interests.indexOf("</section>"));
+  assert.ok(!section.includes("cv__term"), "prose should not become CV rows");
+  assert.match(section, /<ul>/, "the bulleted list should survive as a list");
+});
+
+test("a person's page lists the papers they are an author of", () => {
+  const page = fixture["team/k-b-harikumar/index.html"];
+  assert.match(page, /Publications/);
+  assert.match(page, /A paper that has identifiers/);
+  // The other fixture paper is by somebody else and must not be claimed.
+  assert.ok(!page.includes("A paper with no identifier at all"));
+});
+
+test("the biography above the headings is what the card shows", () => {
+  const team = fixture["team/index.html"];
+  assert.match(team, /The part of the biography that stays on the card\./);
+  // The CV itself belongs on the page, not on a card in a grid of twelve.
+  assert.ok(!team.includes("Institute of Fixtures"));
+});
+
 test("keys lifted out of the body do not also render as prose", () => {
   const team = fixture["team/index.html"];
   assert.ok(!team.includes("orcid: 0000-0001-5109-3700"), "raw key leaked into the page");
@@ -350,6 +429,69 @@ test("gallery photos are lightbox buttons with a full-size source", () => {
   const html = fixture["gallery/index.html"];
   assert.match(html, /class="gallery__item" type="button" data-lightbox/);
   assert.match(html, /data-full="\.\.\/assets\/gallery\//);
+});
+
+/* ----------------------------------------------------------------- Albums */
+
+test("a subfolder of photos/ becomes an album stack that opens into a grid", () => {
+  const html = fixture["gallery/index.html"];
+  assert.match(html, /<details class="album"/);
+  // Title and date come from album.txt; the count is counted, not written.
+  assert.match(html, /class="album__title">Lab retreat</);
+  assert.match(html, /class="album__date">December 2025</);
+  assert.match(html, /class="album__count">3 photos</);
+  assert.match(html, /class="album__caption">Two days in Munnar\.</);
+
+  // Three photos in the folder, three sheets in the closed stack.
+  const summary = html.slice(html.indexOf('<summary class="album__summary">'));
+  const stack = summary.slice(0, summary.indexOf("</summary>"));
+  assert.equal((stack.match(/class="album__sheet"/g) ?? []).length, 3);
+});
+
+test("an album's photos are lightbox buttons in a group of their own", () => {
+  const html = fixture["gallery/index.html"];
+  assert.match(html, /<div class="gallery" data-lightbox-group="lab-retreat">/);
+
+  const album = html.slice(html.indexOf('data-lightbox-group="lab-retreat"'));
+  const grid = album.slice(0, album.indexOf("</div>"));
+  assert.equal((grid.match(/class="gallery__item"/g) ?? []).length, 3);
+  // Album assets live under the album's own folder.
+  assert.match(grid, /data-full="\.\.\/assets\/gallery\/lab-retreat\//);
+});
+
+test("a caption file beside a photo in an album captions that photo", () => {
+  assert.match(
+    fixture["gallery/index.html"],
+    /data-caption="The whole group, on the tea estate\."/,
+  );
+});
+
+test("cover: puts the named photo on top of the stack", () => {
+  const gallery = fixtureResult.site.pages.find((page) => page.kind === "gallery");
+  const album = gallery?.albums.find((entry) => entry.slug === "lab-retreat");
+  assert.ok(album, "the fixture album should load");
+  assert.equal(album.cover.slug, "hike", "cover: names the second photo, not the first");
+  assert.equal(album.items.length, 3);
+});
+
+test("an album folder with no photos in it is skipped with a warning", () => {
+  const gallery = fixtureResult.site.pages.find((page) => page.kind === "gallery");
+  assert.ok(
+    !gallery?.albums.some((album) => album.slug === "empty"),
+    "an empty folder should not render as an album",
+  );
+  assert.ok(
+    fixtureResult.warnings.some((warning) => /album folder has no photos/i.test(warning.message)),
+    "the editor should be told which folder was skipped",
+  );
+});
+
+test("photos left loose in photos/ still render alongside the albums", () => {
+  const html = fixture["gallery/index.html"];
+  assert.match(html, /<div class="gallery" data-lightbox-group="photos">/);
+  // Both groups present means the page labels them.
+  assert.match(html, /<h2>Albums<\/h2>/);
+  assert.match(html, /<h2>More photos<\/h2>/);
 });
 
 test("responsive image markup is emitted for raster sources", () => {

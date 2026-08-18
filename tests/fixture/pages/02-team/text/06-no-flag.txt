@@ -1,0 +1,8 @@
+name: No Flag
+role: PhD Student
+
+This person wrote sections but never asked for a page of their own.
+
+## Awards
+
+2020 — Something they won

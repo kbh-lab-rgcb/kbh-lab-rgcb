@@ -6,6 +6,33 @@
  * throws; unusable input becomes a `Warning` and a sensible fallback.
  */
 
+/**
+ * One line of a profile section: a term and the detail beside it.
+ *
+ * A CV is two columns — a year and what happened, a post and where it was — so
+ * that is what these render as.
+ */
+export type ProfileEntry = {
+  term: string;
+  detail: string;
+};
+
+/**
+ * A `## Heading` block from a person's text file, shown on their own page.
+ *
+ * The block is either a list of entries or ordinary prose, never both: which
+ * one is decided by the shape of what was written, not by anything the editor
+ * has to declare. See `parseProfile` in `text.ts`.
+ */
+export type ProfileSection = {
+  slug: string;
+  title: string;
+  /** Two-column entries. Empty when the block is prose. */
+  entries: ProfileEntry[];
+  /** Rendered markdown. Empty when the block is a list of entries. */
+  html: string;
+};
+
 /** A profile link that only renders when the editor actually supplied it. */
 export type ProfileLink = {
   /** Key as written in the text file, e.g. `orcid`. */
@@ -103,6 +130,16 @@ export type Member = {
   photo: Img | null;
   /** Initials used for the fallback avatar when `photo` is null. */
   initials: string;
+  /**
+   * Where this person's own page lives, e.g. `team/harikumar-kb/`, or `""` when
+   * they have not asked for one with `profile: yes`.
+   *
+   * Site-root-relative like `Img.src`, for the same reason: the page linking
+   * to it resolves it against its own depth.
+   */
+  profilePath: string;
+  /** `## Heading` blocks from below the biography, shown on that page. */
+  sections: ProfileSection[];
   /** Only the profile links the editor actually provided. */
   links: ProfileLink[];
   fields: Record<string, string>;
@@ -139,6 +176,27 @@ export type GalleryItem = {
   title: string;
   caption: string;
   photo: Img;
+};
+
+/**
+ * A named group of photos: one subfolder of a gallery page's `photos/`.
+ *
+ * Albums exist because a gallery grows by the year — a Christmas dinner, a
+ * conference, three thesis defences — and one endless grid of photographs
+ * hides all of that. A folder is the whole authoring interface: drop
+ * `photos/christmas-2025/` in and it becomes an album, with or without the
+ * optional `album.txt` describing it.
+ */
+export type Album = {
+  slug: string;
+  title: string;
+  /** Free-text line under the title, from `date:`. Never parsed as a date. */
+  date: string;
+  /** One-line description, from `caption:` or the body of `album.txt`. */
+  caption: string;
+  /** The photo shown on top of the stack; `items[0]` unless `cover:` says otherwise. */
+  cover: GalleryItem;
+  items: GalleryItem[];
 };
 
 /** What kind of content a page folder holds, inferred from its name. */
@@ -190,6 +248,8 @@ export type Page = {
   publicationYears: PublicationYear[];
   links: LinkItem[];
   gallery: GalleryItem[];
+  /** Photo albums from subfolders of `photos/`, shown as stacks. */
+  albums: Album[];
   /** Collapsible name lists from `lists/`, shown below the cards. */
   rosters: Roster[];
   fields: Record<string, string>;

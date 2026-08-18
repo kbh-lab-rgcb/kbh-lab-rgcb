@@ -13,7 +13,7 @@
 
 import { marked } from "marked";
 import { esc } from "../html.ts";
-import type { ProfileLink } from "./types.ts";
+import type { ProfileEntry, ProfileLink, ProfileSection } from "./types.ts";
 
 marked.setOptions({ gfm: true, breaks: false });
 
@@ -421,4 +421,137 @@ export function boldAuthors(citation: string, surnames: string[]): string {
     html = html.replace(pattern, (match) => `<strong>${match}</strong>`);
   }
   return html;
+}
+
+/* ---------------------------------------------------------------- Profiles */
+
+/** The dash forms people actually type between a term and its detail. */
+const ENTRY_SPLIT = /^(.+?)\s+(?:[—–]|-)\s+(.+)$/;
+
+/** A line that markdown owns: a list, a quote, a table, a code fence. */
+const MARKDOWN_LINE = /^\s*(?:[-*+>|]|\d+[.)]\s|```|~~~)/;
+
+/**
+ * Read a `## Heading` block as a list of two-column entries, or return null
+ * when it is ordinary prose and should stay prose.
+ *
+ * The test is the shape of what was written, so nothing has to be declared:
+ *
+ *  - every line carrying a dash — `2015 — Travel award, ASBMB` — is a list of
+ *    one entry per line, which is the same `term — detail` convention the
+ *    alumni rosters already use;
+ *  - blank-line-separated blocks of two or more lines are a list too, with the
+ *    first line as the term and the rest as its detail, which is how a CV
+ *    pasted out of a document arrives;
+ *  - anything else is prose.
+ *
+ * Deliberately conservative: a bulleted list of societies has no dashes and no
+ * blank lines between items, so it stays a bulleted list rather than being
+ * folded into pairs that were never meant to be pairs.
+ */
+export function parseEntries(body: string): ProfileEntry[] | null {
+  const lines = body.split("\n");
+  if (lines.some((line) => MARKDOWN_LINE.test(line))) return null;
+
+  const filled = lines.map((line) => line.trim()).filter(Boolean);
+  if (filled.length === 0) return null;
+
+  if (filled.every((line) => ENTRY_SPLIT.test(line))) {
+    return filled.map((line) => {
+      const [, term = "", detail = ""] = ENTRY_SPLIT.exec(line) ?? [];
+      return { term: term.trim(), detail: detail.trim() };
+    });
+  }
+
+  const blocks = body
+    .split(/\n\s*\n/)
+    .map((block) => block.split("\n").map((line) => line.trim()).filter(Boolean))
+    .filter((block) => block.length > 0);
+
+  // One line on its own is a paragraph, not a term missing its detail.
+  if (blocks.length >= 2 && blocks.every((block) => block.length >= 2 && block[0]!.length <= 80)) {
+    return blocks.map((block) => ({
+      term: block[0]!,
+      detail: block.slice(1).join(" "),
+    }));
+  }
+
+  return null;
+}
+
+/**
+ * Split a biography into the part that stays on the card and the `## Heading`
+ * blocks that go on the person's own page.
+ *
+ * The rule is worth stating plainly because editors have to hold it in their
+ * heads: **everything above the first heading is the card, everything below it
+ * is the page.** That keeps a team page of twelve cards readable no matter how
+ * long anybody's CV grows.
+ */
+export function parseProfile(body: string): { intro: string; sections: ProfileSection[] } {
+  const lines = body.replace(/\r\n/g, "\n").split("\n");
+  const intro: string[] = [];
+  const blocks: { title: string; lines: string[] }[] = [];
+
+  let fenced = false;
+  for (const line of lines) {
+    if (/^\s*(?:```|~~~)/.test(line)) fenced = !fenced;
+    const heading = fenced ? null : /^\s{0,3}#{2,4}\s+(.+?)\s*#*\s*$/.exec(line);
+    if (heading) {
+      blocks.push({ title: heading[1]!.trim(), lines: [] });
+      continue;
+    }
+    (blocks.length > 0 ? blocks[blocks.length - 1]!.lines : intro).push(line);
+  }
+
+  const sections: ProfileSection[] = [];
+  for (const block of blocks) {
+    const text = block.lines.join("\n").trim();
+    const entries = parseEntries(text);
+    sections.push({
+      slug: slugify(block.title) || `section-${sections.length + 1}`,
+      title: block.title,
+      entries: entries ?? [],
+      html: entries ? "" : renderMarkdown(text),
+    });
+  }
+
+  return { intro: intro.join("\n").trim(), sections };
+}
+
+/**
+ * Is this person one of the authors of this citation?
+ *
+ * Matches the three forms journals print — `Harikumar KB`, `KB Harikumar` and
+ * `K B Harikumar` — so a person's page can list their own papers without
+ * anybody maintaining a second list of DOIs by hand. Where a name is written
+ * initial-last, as `Arun V`, the *first* word is the surname; that is the
+ * convention half this lab writes their name in.
+ */
+export function citedAs(citation: string, name: string): boolean {
+  const words = name
+    .replace(/\b(dr|prof|mr|ms|mrs|shri|smt)\.?\s*/gi, "")
+    .split(/[\s.]+/)
+    .filter(Boolean);
+  if (words.length === 0) return false;
+
+  let surname = words[words.length - 1]!;
+  let rest = words.slice(0, -1);
+  if (surname.length <= 2 && words.length > 1) {
+    surname = words[0]!;
+    rest = words.slice(1);
+  }
+  if (surname.length < 3) return false;
+
+  const family = escapeRegExp(surname);
+  const initial = rest[0]?.[0];
+  const patterns = initial
+    ? [
+        `\\b${family}\\s+${initial}[A-Za-z]?\\b`,
+        `\\b${initial}[A-Za-z]?\\s+${family}\\b`,
+        `\\b${rest.map((word) => escapeRegExp(word)).join("\\s+")}\\s+${family}\\b`,
+      ]
+    : [`\\b${family}\\b`];
+
+  return patterns.some((pattern) => new RegExp(pattern, "i").test(citation));
 }

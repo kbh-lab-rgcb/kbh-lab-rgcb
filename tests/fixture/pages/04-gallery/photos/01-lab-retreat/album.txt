@@ -1,0 +1,4 @@
+title: Lab retreat
+date: December 2025
+cover: 02-hike.svg
+caption: Two days in Munnar.

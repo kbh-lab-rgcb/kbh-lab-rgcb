@@ -33,6 +33,9 @@ for (const page of site.pages) {
       ? `${page.publicationYears.reduce((total, year) => total + year.items.length, 0)} papers across ${page.publicationYears.length} years`
       : "",
     page.gallery.length ? `${page.gallery.length} photos` : "",
+    page.albums.length
+      ? `${page.albums.length} album(s) holding ${page.albums.reduce((total, album) => total + album.items.length, 0)} photos`
+      : "",
     page.links.length ? `${page.links.length} links` : "",
   ].filter(Boolean);
   for (const bit of bits) console.log(`      ${bit}`);

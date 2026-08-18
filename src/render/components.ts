@@ -363,14 +363,41 @@ export function storyCard(
   ]);
 }
 
-/** Portrait, or the initials fallback when no photo has been uploaded. */
+/**
+ * Portrait, or the initials fallback when no photo has been uploaded.
+ *
+ * The portrait is the link to a person's own page when they have one, because
+ * a face is the thing a reader aims at. The name is a link as well — a picture
+ * on its own is a poor target for anybody using a screen reader or a keyboard.
+ */
 function portrait(member: Member, depth: number, sizes: string): string {
+  const inside = member.photo
+    ? image(member.photo, depth, { alt: `${member.name}, ${member.role}`, sizes })
+    : `<div class="person__initials" aria-hidden="true">${esc(member.initials)}</div>`;
+
   return join([
     '<div class="person__portrait">',
-    member.photo
-      ? image(member.photo, depth, { alt: `${member.name}, ${member.role}`, sizes })
-      : `<div class="person__initials" aria-hidden="true">${esc(member.initials)}</div>`,
+    member.profilePath
+      ? `<a class="person__portrait-link" href="${esc(rel(depth, member.profilePath))}" tabindex="-1" aria-hidden="true">${inside}</a>`
+      : inside,
     "</div>",
+  ]);
+}
+
+/** The person's name, linked to their own page when they have one. */
+function personName(member: Member, depth: number): string {
+  return member.profilePath
+    ? `<h3 class="person__name"><a href="${esc(rel(depth, member.profilePath))}">${esc(member.name)}</a></h3>`
+    : `<h3 class="person__name">${esc(member.name)}</h3>`;
+}
+
+/** The "read the full profile" line at the foot of a card that has a page. */
+function profileLink(member: Member, depth: number): string {
+  if (!member.profilePath) return "";
+  return join([
+    `<p class="person__more"><a href="${esc(rel(depth, member.profilePath))}">`,
+    `<span>Full profile</span>${icons.arrowRight}`,
+    "</a></p>",
   ]);
 }
 
@@ -379,7 +406,7 @@ export function personCard(member: Member, depth: number, index = 0): string {
     `<article class="person"${reveal(index)}>`,
     portrait(member, depth, "(max-width: 640px) 50vw, 15rem"),
     "<div>",
-    `<h3 class="person__name">${esc(member.name)}</h3>`,
+    personName(member, depth),
     `<p class="person__role">${esc(member.role)}</p>`,
     member.focus ? `<p class="person__focus">${esc(member.focus)}</p>` : "",
     "</div>",
@@ -388,6 +415,7 @@ export function personCard(member: Member, depth: number, index = 0): string {
       ? `<p class="person__focus"><a href="mailto:${esc(member.email)}">${esc(member.email)}</a></p>`
       : "",
     linkList(member.links),
+    profileLink(member, depth),
     "</article>",
   ]);
 }
@@ -399,7 +427,7 @@ export function leadPersonCard(member: Member, depth: number): string {
     portrait(member, depth, "(max-width: 640px) 60vw, 15rem"),
     '<div class="person">',
     "<div>",
-    `<h3 class="person__name">${esc(member.name)}</h3>`,
+    personName(member, depth),
     `<p class="person__role">${esc(member.role)}</p>`,
     member.focus ? `<p class="person__focus">${esc(member.focus)}</p>` : "",
     "</div>",
@@ -408,6 +436,7 @@ export function leadPersonCard(member: Member, depth: number): string {
       ? `<p class="person__focus"><a href="mailto:${esc(member.email)}">${esc(member.email)}</a></p>`
       : "",
     linkList(member.links),
+    profileLink(member, depth),
     "</div>",
     "</article>",
   ]);
@@ -419,7 +448,7 @@ export function alumnusCard(member: Member, depth: number, index = 0): string {
     `<article class="person"${reveal(index)}>`,
     portrait(member, depth, "(max-width: 640px) 50vw, 15rem"),
     "<div>",
-    `<h3 class="person__name">${esc(member.name)}</h3>`,
+    personName(member, depth),
     `<p class="person__role">${esc(join([member.role, member.year && `· ${member.year}`], " "))}</p>`,
     "</div>",
     member.thesis
@@ -430,6 +459,7 @@ export function alumnusCard(member: Member, depth: number, index = 0): string {
       : "",
     member.html ? `<div class="person__bio prose">${member.html}</div>` : "",
     linkList(member.links),
+    profileLink(member, depth),
     "</article>",
   ]);
 }

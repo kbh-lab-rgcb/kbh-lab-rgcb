@@ -13,6 +13,7 @@ import { loadSite } from "./content/load.ts";
 import type { Site, Warning } from "./content/types.ts";
 import { renderDocument } from "./render/layout.ts";
 import { descriptionFor, renderPageBody } from "./render/pages.ts";
+import { profileDescription, profileShell, renderProfileBody } from "./render/profile.ts";
 import { depthOf, outputPath } from "./render/url.ts";
 
 const STYLE_FILES = ["tokens.css", "base.css", "layout.css", "components.css"];
@@ -21,6 +22,8 @@ export type BuildResult = {
   site: Site;
   warnings: Warning[];
   pageCount: number;
+  /** Personal pages written alongside them. Not part of `pageCount`. */
+  profileCount: number;
   ms: number;
 };
 
@@ -87,6 +90,30 @@ export async function buildSite(options: BuildOptions): Promise<BuildResult> {
     await writeFile(target, html);
   }
 
+  // Anyone with `profile: yes` also gets a page of their own, written inside
+  // their page's folder as `team/harikumar-kb/index.html`. These are not in
+  // `site.pages` on purpose: they are reachable from the cards, but a
+  // navigation bar with fourteen names in it would be no navigation at all.
+  let profileCount = 0;
+  for (const page of site.pages) {
+    for (const member of page.members) {
+      if (!member.profilePath) continue;
+      const shell = profileShell(page, member);
+      const depth = depthOf(shell);
+      const html = renderDocument({
+        site,
+        page: shell,
+        depth,
+        body: renderProfileBody(site, page, member, depth),
+        description: profileDescription(member),
+      });
+      const target = join(outRoot, outputPath(shell));
+      await mkdir(dirname(target), { recursive: true });
+      await writeFile(target, html);
+      profileCount += 1;
+    }
+  }
+
   await writeFile(join(outRoot, "styles.css"), await buildStyles(root));
   await writeFile(join(outRoot, "main.js"), await buildScript(root, liveReload));
 
@@ -102,6 +129,7 @@ export async function buildSite(options: BuildOptions): Promise<BuildResult> {
     site,
     warnings: site.warnings,
     pageCount: site.pages.length,
+    profileCount,
     ms: Date.now() - started,
   };
 }

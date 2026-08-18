@@ -2,6 +2,7 @@ name: Dr. K.B. Harikumar
 role: Scientist F · Principal Investigator
 email: harikumar@rgcb.res.in
 focus: Sphingolipid signalling in inflammation, immunity and cancer
+profile: yes
 
 Harikumar leads the laboratory's work on the role of inflammation in physiology
 — the innate immune response — and in pathophysiology, principally cancer.
@@ -16,3 +17,29 @@ Scientist F.
 He is a member of the Indian Association for Cancer Research, the American
 Association of Indian Scientists in Cancer Research, and the European Federation
 of Biotechnology.
+
+## Positions
+
+Scientist F — Rajiv Gandhi Centre for Biotechnology
+Scientist E-I — Rajiv Gandhi Centre for Biotechnology
+Scientist C & Ramalingaswami Fellow — Rajiv Gandhi Centre for Biotechnology
+Post doctoral Associate — Department of Biochemistry & Molecular Biology, School of Medicine, Virginia Commonwealth University, Richmond, VA, USA
+Research Intern — Department of Experimental Therapeutics, UT M. D. Anderson Cancer Center, Houston, TX, USA
+
+## Education
+
+PhD Biochemistry, 2008 — Amala Cancer Research Centre, Thrissur, affiliated with Mahatma Gandhi University, Kottayam
+M.Sc Biochemistry, 2001 — Nagpur University, Nagpur
+B.Sc Biochemistry, 1999 — Hislop College, Nagpur
+
+## Awards and fellowships
+
+2015 — International Brain Research Organization (IBRO)'s North American Laboratory activity program at UT M. D. Anderson Cancer Center, Houston, TX, in October
+2014 — Travel award from Centre for International Co-operation in Science (CICS), Chennai
+2012-2017 — Ramalingaswami re-entry fellowship from Department of Biotechnology, Government of India
+2013-2016 — Fast track fellowship from Department of Science and Technology, Government of India
+2011 — Travel award from American Society for Biochemistry and Molecular Biology (ASBMB) Annual meeting, Washington D.C.
+2010 — Best poster award at the Integrated cellular and molecular signaling (ICAMS)/LCRD research retreat, Virginia Commonwealth University, Richmond, USA, October
+2004-2006 — Senior Research Fellowship by Indian Council of Medical Research (ICMR)
+2004-2005 — Travel award from Indian Association for Cancer Research (IACR)
+2001-2004 — Junior Research Fellowship by Mahatma Gandhi University, India

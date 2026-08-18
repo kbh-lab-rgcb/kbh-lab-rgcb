@@ -1,0 +1,1 @@
+A folder with no photos in it, so the build warns instead of rendering an empty album.
