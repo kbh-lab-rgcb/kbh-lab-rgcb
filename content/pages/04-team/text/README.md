@@ -95,6 +95,11 @@ becomes a two-column row, which is what makes a CV readable:
 2012-2017 — Ramalingaswami re-entry fellowship, DBT
 ```
 
+**Use the long dash (—) as the separator** when the left-hand side has a dash of
+its own. `2022 – present — Senior Research Fellow, RGCB` splits at the long dash,
+so the date range stays in one piece. On a keyboard without one, `-` with a space
+either side works the same way as long as nothing else on the line uses it.
+
 Pasting a CV straight out of a document works too, as long as there is a **blank
 line between entries**:
 
@@ -115,8 +120,39 @@ ordinary text, exactly as you wrote it.
 you as an author is shown on your page, grouped by year, so there is no second
 list to keep up to date.
 
-If your surname is a common one and papers appear that are not yours, list your
-own by DOI instead:
+#### Papers that are not on the lab's publications page
+
+Work from a previous laboratory, a collaboration, a preprint — anything the lab
+list does not carry — goes on **your page only**. Two ways to add one.
+
+**Just the DOI.** Add a `papers:` line and it is shown with a working link, even
+though no such paper exists on the publications page:
+
+```text
+papers: 10.5555/your.paper.2019
+```
+
+**The whole citation**, which reads far better than a bare DOI. Paste it under a
+`## Publications` heading in your own file, one paper per paragraph, exactly as
+the publications page is written:
+
+```text
+## Publications
+
+Your Name, Someone E. The title of the paper. J Elsewhere. 2019;4:11-19. doi:10.5555/your.paper.2019
+
+Your Name, Another A. An earlier paper. J Example. 2017;2:3-9. pmid:12345678
+```
+
+The DOI and PubMed buttons appear by themselves, the year is read out of the
+citation, and these papers are shown in the same **Publications** section as
+everything else — never under a second heading.
+
+#### Listing your papers by hand
+
+Writing a `papers:` line switches the automatic matching off, so it becomes the
+whole list. That is what to use if your surname is a common one and papers
+appear that are not yours:
 
 ```text
 papers: 10.3390/biom11050661, 10.1016/j.jare.2023.12.013

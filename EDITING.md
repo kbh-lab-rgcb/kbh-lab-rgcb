@@ -133,8 +133,18 @@ PhD Biochemistry, 2024 — Rajiv Gandhi Centre for Biotechnology
 
 A line written as **`term — detail`** becomes a two-column row. Papers on the
 publications page that list that person as an author appear on their page by
-themselves — there is no second list to maintain. The alumni page works the same
-way.
+themselves — there is no second list to maintain.
+
+Papers the lab list does **not** carry — earlier work from another laboratory, a
+preprint — can go on their page alone. Either give the DOI:
+
+```text
+papers: 10.5555/their.paper.2019
+```
+
+or paste the full citation under a `## Publications` heading in their own file,
+one per paragraph, and it is listed properly with its DOI and PubMed buttons.
+The alumni page works the same way.
 
 `content/pages/04-team/text/README.md` explains every part of this.
 

@@ -247,6 +247,13 @@ test("dashed lines become two-column CV rows", () => {
   assert.match(page, /<dd class="cv__detail">University of Examples<\/dd>/);
 });
 
+test("a date range in the term is not mistaken for the separator", () => {
+  // `2018 – 2020 — Visiting Fellow` splits at the em dash, not the en dash.
+  const page = fixture["team/k-b-harikumar/index.html"];
+  assert.match(page, /<dt class="cv__term">2018 – 2020<\/dt>/);
+  assert.match(page, /<dd class="cv__detail">Visiting Fellow, Institute of Fixtures<\/dd>/);
+});
+
 test("a CV pasted as term-then-detail lines becomes rows too", () => {
   const page = fixture["team/k-b-harikumar/index.html"];
   assert.match(page, /<dt class="cv__term">Scientist F<\/dt>/);
@@ -268,6 +275,35 @@ test("a person's page lists the papers they are an author of", () => {
   assert.match(page, /A paper that has identifiers/);
   // The other fixture paper is by somebody else and must not be claimed.
   assert.ok(!page.includes("A paper with no identifier at all"));
+});
+
+test("a DOI that is not on the publications page still appears on the profile", () => {
+  const page = fixture["team/outside-author/index.html"];
+  assert.ok(page, "the profile page should be generated");
+  assert.match(page, /href="https:\/\/doi\.org\/10\.9999\/not-on-the-lab-list"/);
+  assert.match(page, /10\.9999\/not-on-the-lab-list/);
+  assert.ok(
+    fixtureResult.warnings.some((warning) =>
+      /Outside Author lists 10\.9999\/not-on-the-lab-list/.test(warning.message),
+    ),
+    "the editor should be told a pasted citation would read better",
+  );
+});
+
+test("a citation pasted under ## Publications is listed in full", () => {
+  const page = fixture["team/outside-author/index.html"];
+  assert.match(page, /A paper the lab list does not carry/);
+  assert.match(page, /href="https:\/\/doi\.org\/10\.5555\/elsewhere\.2019"/);
+  // Filed under the year in the citation, not left undated.
+  assert.match(page, /<h3 class="pub-year__label">2019<\/h3>/);
+  // One publications section, not the pasted block printed twice.
+  assert.equal((page.match(/profile-section__title">Publications/g) ?? []).length, 1);
+});
+
+test("listing papers explicitly replaces the author matching", () => {
+  const page = fixture["team/outside-author/index.html"];
+  // The fixture's own lab paper names a different author and must not appear.
+  assert.ok(!page.includes("A paper that has identifiers"));
 });
 
 test("the biography above the headings is what the card shows", () => {

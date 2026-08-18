@@ -2,7 +2,30 @@ name: Arun Viswanathan
 role: PhD Student
 focus: Obesity-driven pancreatic cancer
 profile: yes
-papers:10.1016/j.jare.2023.12.013, 10.1016/j.plipres.2023.101251
+papers: 10.1016/j.jare.2023.12.013, 10.1016/j.plipres.2023.101251
+
 Arun studies how the metabolic state of the host shapes pancreatic tumours,
 asking how obesity reshapes the tumour microenvironment and the immune response
 within it.
+
+## Experience
+
+2022 – present — Senior Research Fellow & PhD Candidate, Rajiv Gandhi Centre for Biotechnology
+2020 – 2022 — Junior Research Fellow & PhD Candidate, Rajiv Gandhi Centre for Biotechnology
+2017 – 2020 — Guest Lecturer, Al Salama College of Optometry & Management Studies
+
+## Education
+
+2020 – present — PhD, Biotechnology, Rajiv Gandhi Centre for Biotechnology
+2014 – 2016 — M.Sc., Biochemistry & Molecular Biology, Pondicherry University
+2009 – 2013 — B.Sc.Ed., Regional Institute of Education, Mysore
+
+## Conference presentations
+
+2026 — STAT3-Mediated Immune Dysfunction and… (Abstract P29). Cancer Research, 86(13_Supplement). Presented with support of the Travel Award, Frontiers in Cancer Science 2025, Singapore.
+
+## Honours and awards
+
+2025 — Travel Award, Frontiers in Cancer Science 2025, Singapore
+2025 — Best Poster Presentation (Top 5), National Symposium for Biotechnology for Sustainable Development
+2024 — Best Oral Presentation (2nd place), Global Cancer Consortium Conference (GCC 2024)

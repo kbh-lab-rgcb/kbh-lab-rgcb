@@ -8,43 +8,82 @@
  */
 
 import { esc, join } from "../html.ts";
-import type { Member, Page, ProfileSection, PublicationYear, Site } from "../content/types.ts";
+import type {
+  Member,
+  Page,
+  ProfileSection,
+  Publication,
+  PublicationYear,
+  Site,
+} from "../content/types.ts";
 import { image, linkList, reveal } from "./components.ts";
 import { citedAs, excerpt, field, parseDoiList } from "../content/text.ts";
 import { icons } from "./icons.ts";
 import { hrefTo } from "./url.ts";
 
+/** Group papers by year, newest first, with undated ones last. */
+function byYear(items: Publication[]): PublicationYear[] {
+  const groups = new Map<string, Publication[]>();
+  for (const item of items) {
+    const list = groups.get(item.year);
+    if (list) list.push(item);
+    else groups.set(item.year, [item]);
+  }
+
+  return [...groups.entries()]
+    .map(([year, list]) => ({ year, items: list }))
+    .sort((a, b) => {
+      if (!a.year) return 1;
+      if (!b.year) return -1;
+      return b.year.localeCompare(a.year);
+    });
+}
+
 /**
- * The papers this person is an author of.
+ * The papers on this person's page.
  *
- * Worked out from the publications page rather than kept as a second list:
- * a citation corrected there is corrected here, and nobody has to remember
- * that a person's page exists when they add a paper.
+ * Three sources, in this order, because they answer three different questions:
  *
- * `papers:` in their text file overrides the matching with an explicit list of
- * DOIs, for the cases where a surname is too common to match on; `publications:
- * no` turns the section off altogether.
+ *  - `papers:` in their file — an explicit list of DOIs. Use it when a surname
+ *    is too common for matching to be safe. **A DOI that is not on the lab's
+ *    publications page still appears**, resolved in `load.ts` to the DOI itself
+ *    with a working link, which is what makes work from a previous group or a
+ *    collaboration possible to list here at all.
+ *  - a `## Publications` heading in their file — citations pasted in full.
+ *    Same purpose, better result: a real citation rather than a bare DOI. These
+ *    are always added, whatever else is listed.
+ *  - failing both, every paper on the publications page that names them as an
+ *    author, so nobody has to maintain a second list of the lab's own work.
+ *
+ * `publications: no` turns the section off entirely.
  */
 export function papersFor(site: Site, member: Member): PublicationYear[] {
   if (/^(no|off|none|hide|false)$/i.test(field(member.fields, "publications"))) return [];
 
-  const dois = parseDoiList(field(member.fields, "papers", "publications"));
-  const mine = (citation: string, links: { kind: string; url: string }[]): boolean =>
-    dois.length > 0
-      ? links.some(
-          (link) =>
-            link.kind === "doi" && dois.includes(link.url.replace(/^https:\/\/doi\.org\//i, "").toLowerCase()),
-        )
-      : citedAs(citation, member.name);
+  const pasted = member.sections.flatMap((section) => section.papers);
+  const listed = member.papers.length > 0 || pasted.length > 0;
 
-  const years: PublicationYear[] = [];
-  for (const page of site.pages) {
-    for (const group of page.publicationYears) {
-      const items = group.items.filter((item) => mine(item.citation, item.links));
-      if (items.length > 0) years.push({ year: group.year, items });
-    }
-  }
-  return years;
+  const own = listed
+    ? [...member.papers, ...pasted]
+    : site.pages.flatMap((page) =>
+        page.publicationYears.flatMap((group) =>
+          group.items.filter((item) => citedAs(item.citation, member.name)),
+        ),
+      );
+
+  // The same paper written twice — once as a DOI, once pasted in full — is one
+  // paper. The first spelling of it wins.
+  const seen = new Set<string>();
+  const unique = own.filter((item) => {
+    const key =
+      item.links.find((link) => link.kind === "doi")?.url.toLowerCase() ??
+      item.citation.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  return byYear(unique);
 }
 
 function profileSection(section: ProfileSection, index: number): string {
@@ -134,7 +173,12 @@ export function renderProfileBody(
 
     member.html ? `<div class="prose profile__bio"${reveal()}>${member.html}</div>` : "",
 
-    member.sections.map((section, index) => profileSection(section, index)).join(""),
+    // A `## Publications` block is not printed where it was written: its papers
+    // are merged into the publications section below, so there is one list.
+    member.sections
+      .filter((section) => section.papers.length === 0)
+      .map((section, index) => profileSection(section, index))
+      .join(""),
 
     total > 0
       ? join([
@@ -144,7 +188,8 @@ export function renderProfileBody(
             .map((group) =>
               join([
                 '<div class="pub-year">',
-                `<h3 class="pub-year__label">${esc(group.year)}</h3>`,
+                // A paper listed only by DOI has no year to file it under.
+                group.year ? `<h3 class="pub-year__label">${esc(group.year)}</h3>` : "",
                 '<ul class="pub-list">',
                 group.items
                   .map(

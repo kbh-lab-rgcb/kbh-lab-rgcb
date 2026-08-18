@@ -31,6 +31,12 @@ export type ProfileSection = {
   entries: ProfileEntry[];
   /** Rendered markdown. Empty when the block is a list of entries. */
   html: string;
+  /**
+   * Citations, when the heading is a publications one and the block is a list
+   * of papers. These are lifted out and merged into the page's publications
+   * section rather than printed under a second heading of their own.
+   */
+  papers: Publication[];
 };
 
 /** A profile link that only renders when the editor actually supplied it. */
@@ -140,6 +146,14 @@ export type Member = {
   profilePath: string;
   /** `## Heading` blocks from below the biography, shown on that page. */
   sections: ProfileSection[];
+  /** DOIs from a `papers:` line, in the order written. */
+  paperDois: string[];
+  /**
+   * Those DOIs looked up on the publications page. A DOI nobody has listed
+   * there still yields an entry — the DOI itself, with a working link — so a
+   * paper that predates the lab's own list can still appear on a person's page.
+   */
+  papers: Publication[];
   /** Only the profile links the editor actually provided. */
   links: ProfileLink[];
   fields: Record<string, string>;

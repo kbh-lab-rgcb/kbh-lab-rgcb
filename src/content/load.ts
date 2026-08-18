@@ -380,7 +380,7 @@ async function loadStories(ctx: Ctx): Promise<Story[]> {
       why: field(fields, "why", "whyitmatters", "significance"),
       excerpt: field(fields, "excerpt", "card", "short"),
       paperDois,
-      // Filled in once every page is loaded, by `resolveStoryPapers`.
+      // Filled in once every page is loaded, by `resolveCitedPapers`.
       papers: [],
       // Silence is consent: a story is on the home page unless it says not to,
       // so adding a file is the only step there is.
@@ -404,7 +404,11 @@ async function loadStories(ctx: Ctx): Promise<Story[]> {
  * error, because both are normal intermediate states when two people are each
  * adding half of an entry.
  */
-async function loadMembers(ctx: Ctx, isAlumni: boolean): Promise<Member[]> {
+async function loadMembers(
+  ctx: Ctx,
+  isAlumni: boolean,
+  labAuthors: string[],
+): Promise<Member[]> {
   const photosDir = join(ctx.pageDir, "photos");
   const textDir = join(ctx.pageDir, "text");
   const photoFiles = await listImages(photosDir);
@@ -463,7 +467,7 @@ async function loadMembers(ctx: Ctx, isAlumni: boolean): Promise<Member[]> {
 
     // `## Heading` blocks are a CV, not a card. They are split off here so the
     // team page stays a page of cards however long anybody's CV becomes.
-    const { intro, sections } = parseProfile(body);
+    const { intro, sections } = parseProfile(body, labAuthors);
     const wantsPage = flag(field(fields, "profile", "page", "ownpage"));
 
     if (sections.length > 0 && !wantsPage) {
@@ -492,6 +496,11 @@ async function loadMembers(ctx: Ctx, isAlumni: boolean): Promise<Member[]> {
       initials: initialsOf(name),
       profilePath: wantsPage ? `${ctx.slug}/${slug}/` : "",
       sections,
+      // Resolved against the publications page once every page is loaded, in
+      // `resolveCitedPapers` — a DOI listed here that nobody has added to that
+      // page still appears, as itself.
+      paperDois: parseDoiList(field(fields, "papers", "publications")),
+      papers: [],
       links: profileLinks(fields),
       fields,
     });
@@ -739,20 +748,21 @@ async function loadAlbums(ctx: Ctx): Promise<Album[]> {
  * ------------------------------------------------------------------ */
 
 /**
- * Turn each story's `papers:` DOIs back into the citations the publications
- * page prints.
+ * Turn every `papers:` DOI — a story's and a person's — back into the citation
+ * the publications page prints.
  *
- * Runs once every page is loaded, because a story on the research page cites
- * papers listed on another page entirely. The point of citing by DOI is that
- * there is one copy of each citation on the site: correct a typo in an author
- * list and it is corrected everywhere it appears.
+ * Runs once every page is loaded, because a story on the research page and a
+ * person on the team page both cite papers listed on another page entirely.
+ * The point of citing by DOI is that there is one copy of each citation on the
+ * site: correct a typo in an author list and it is corrected everywhere it
+ * appears.
  *
  * A DOI nobody has listed yet still renders — as itself, with a working link —
  * and produces a warning naming the folder to add it to. That is the usual
  * bargain here: the page is never worse than slightly plain, and the editor is
  * told what would make it better.
  */
-function resolveStoryPapers(
+function resolveCitedPapers(
   pages: Page[],
   sources: { relDir: string; stories: Story[] }[],
   warnings: Warning[],
@@ -770,6 +780,14 @@ function resolveStoryPapers(
     }
   }
 
+  /** The DOI on its own, with a working link: never nothing. */
+  const bare = (doi: string): Publication => ({
+    year: "",
+    citation: doi,
+    html: esc(doi),
+    links: [{ kind: "doi", label: "DOI", url: `https://doi.org/${doi}` }],
+  });
+
   for (const { relDir, stories } of sources) {
     for (const story of stories) {
       story.papers = story.paperDois.map((doi) => {
@@ -781,14 +799,33 @@ function resolveStoryPapers(
           message: `“${story.title}” cites ${doi}, which is not on the publications page.`,
           fallback:
             "The DOI was shown on its own with a link. Add the paper to " +
-            "content/pages/05-publications/years/ for the full citation.",
+            "content/pages/06-publications/years/ for the full citation.",
         });
-        return {
-          year: "",
-          citation: doi,
-          html: esc(doi),
-          links: [{ kind: "doi", label: "DOI", url: `https://doi.org/${doi}` }],
-        };
+        return bare(doi);
+      });
+    }
+  }
+
+  // The same bargain for a person's own `papers:` line — with one difference.
+  // A paper somebody worked on before joining the lab has no business on the
+  // lab's publications page, so an unknown DOI here is a perfectly ordinary
+  // thing to write. It is shown either way; the warning only points out that a
+  // pasted citation would read better than a bare DOI.
+  for (const page of pages) {
+    for (const member of page.members) {
+      if (member.paperDois.length === 0) continue;
+      member.papers = member.paperDois.map((doi) => {
+        const known = byDoi.get(doi);
+        if (known) return known;
+
+        warnings.push({
+          file: `content/pages/${page.slug}/text/`,
+          message: `${member.name} lists ${doi}, which is not on the publications page.`,
+          fallback:
+            "The DOI was shown on their page with a link. Paste the full citation under a " +
+            "`## Publications` heading in their file for a proper entry.",
+        });
+        return bare(doi);
       });
     }
   }
@@ -846,7 +883,9 @@ export async function loadSite(options: {
       sections: textFolderIsPaired ? [] : await loadSections(ctx),
       stories: await loadStories(ctx),
       members:
-        kind === "team" || kind === "alumni" ? await loadMembers(ctx, kind === "alumni") : [],
+        kind === "team" || kind === "alumni"
+          ? await loadMembers(ctx, kind === "alumni", config.labAuthors)
+          : [],
       publicationYears:
         kind === "publications" ? await loadPublications(ctx, config.labAuthors) : [],
       links: kind === "links" ? await loadLinks(ctx) : [],
@@ -860,7 +899,7 @@ export async function loadSite(options: {
     if (page.stories.length > 0) storySources.push({ relDir, stories: page.stories });
   }
 
-  resolveStoryPapers(pages, storySources, warnings);
+  resolveCitedPapers(pages, storySources, warnings);
 
   pages.sort((a, b) => a.order - b.order || a.slug.localeCompare(b.slug));
 

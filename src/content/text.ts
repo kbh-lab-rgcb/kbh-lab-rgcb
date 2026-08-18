@@ -13,7 +13,7 @@
 
 import { marked } from "marked";
 import { esc } from "../html.ts";
-import type { ProfileEntry, ProfileLink, ProfileSection } from "./types.ts";
+import type { ProfileEntry, ProfileLink, ProfileSection, Publication } from "./types.ts";
 
 marked.setOptions({ gfm: true, breaks: false });
 
@@ -425,8 +425,28 @@ export function boldAuthors(citation: string, surnames: string[]): string {
 
 /* ---------------------------------------------------------------- Profiles */
 
-/** The dash forms people actually type between a term and its detail. */
-const ENTRY_SPLIT = /^(.+?)\s+(?:[—–]|-)\s+(.+)$/;
+/**
+ * The dashes people type between a term and its detail, strongest first.
+ *
+ * Order is the whole point. A CV line reads `2022 – present — Senior Research
+ * Fellow, RGCB`: the term itself contains an en dash, and splitting at the
+ * first dash of any kind would cut it in half. Looking for the em dash first
+ * means the long dash somebody reached for as the separator wins over the short
+ * one inside a date range.
+ */
+const ENTRY_DASHES = [" — ", " – ", " - "];
+
+/** Split one line into `term` and `detail`, or null when it carries no dash. */
+function splitEntry(line: string): ProfileEntry | null {
+  for (const dash of ENTRY_DASHES) {
+    const at = line.indexOf(dash);
+    if (at <= 0) continue;
+    const term = line.slice(0, at).trim();
+    const detail = line.slice(at + dash.length).trim();
+    if (term && detail) return { term, detail };
+  }
+  return null;
+}
 
 /** A line that markdown owns: a list, a quote, a table, a code fence. */
 const MARKDOWN_LINE = /^\s*(?:[-*+>|]|\d+[.)]\s|```|~~~)/;
@@ -456,11 +476,9 @@ export function parseEntries(body: string): ProfileEntry[] | null {
   const filled = lines.map((line) => line.trim()).filter(Boolean);
   if (filled.length === 0) return null;
 
-  if (filled.every((line) => ENTRY_SPLIT.test(line))) {
-    return filled.map((line) => {
-      const [, term = "", detail = ""] = ENTRY_SPLIT.exec(line) ?? [];
-      return { term: term.trim(), detail: detail.trim() };
-    });
+  const split = filled.map((line) => splitEntry(line));
+  if (split.every((entry) => entry !== null)) {
+    return split as ProfileEntry[];
   }
 
   const blocks = body
@@ -479,6 +497,47 @@ export function parseEntries(body: string): ProfileEntry[] | null {
   return null;
 }
 
+/** Headings under which a block of text is a list of papers, not prose. */
+const PAPERS_HEADING = /^(?:selected|recent|key|other)?\s*(?:publications?|papers|preprints|articles)$/i;
+
+/**
+ * The year a citation refers to.
+ *
+ * Taken as the last four-digit year in the line, because that is where journal
+ * styles put it — `J Adv Res. 2024;65:73-87` — and a year in the *title* of a
+ * paper would otherwise win. Empty when there is nothing that looks like one,
+ * which only costs the paper its year heading.
+ */
+function yearOfCitation(citation: string): string {
+  const found = citation.match(/\b(?:19|20)\d{2}\b/g);
+  return found ? found[found.length - 1]! : "";
+}
+
+/**
+ * Read a block as pasted citations: one per paragraph, exactly as the
+ * publications page is written.
+ *
+ * This is what lets somebody list a paper the lab's own publications page does
+ * not carry — work from a previous group, a preprint, a paper with another
+ * lab — without it having to be added to the lab list first.
+ */
+export function parsePapers(body: string, labAuthors: string[]): Publication[] {
+  const papers: Publication[] = [];
+  for (const block of body.replace(/\r\n/g, "\n").split(/\n\s*\n/)) {
+    const line = block.replace(/\n/g, " ").trim().replace(/^[-*•]\s*/, "");
+    if (!line || line.startsWith("#")) continue;
+    const { citation, links } = parseCitation(line);
+    if (!citation) continue;
+    papers.push({
+      year: yearOfCitation(citation),
+      citation,
+      html: boldAuthors(citation, labAuthors),
+      links,
+    });
+  }
+  return papers;
+}
+
 /**
  * Split a biography into the part that stays on the card and the `## Heading`
  * blocks that go on the person's own page.
@@ -488,7 +547,10 @@ export function parseEntries(body: string): ProfileEntry[] | null {
  * is the page.** That keeps a team page of twelve cards readable no matter how
  * long anybody's CV grows.
  */
-export function parseProfile(body: string): { intro: string; sections: ProfileSection[] } {
+export function parseProfile(
+  body: string,
+  labAuthors: string[] = [],
+): { intro: string; sections: ProfileSection[] } {
   const lines = body.replace(/\r\n/g, "\n").split("\n");
   const intro: string[] = [];
   const blocks: { title: string; lines: string[] }[] = [];
@@ -507,12 +569,14 @@ export function parseProfile(body: string): { intro: string; sections: ProfileSe
   const sections: ProfileSection[] = [];
   for (const block of blocks) {
     const text = block.lines.join("\n").trim();
-    const entries = parseEntries(text);
+    const papers = PAPERS_HEADING.test(block.title) ? parsePapers(text, labAuthors) : [];
+    const entries = papers.length > 0 ? null : parseEntries(text);
     sections.push({
       slug: slugify(block.title) || `section-${sections.length + 1}`,
       title: block.title,
       entries: entries ?? [],
-      html: entries ? "" : renderMarkdown(text),
+      html: entries || papers.length > 0 ? "" : renderMarkdown(text),
+      papers,
     });
   }
 

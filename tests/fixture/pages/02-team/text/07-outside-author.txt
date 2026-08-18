@@ -1,0 +1,11 @@
+name: Outside Author
+role: Postdoctoral Fellow
+profile: yes
+papers: 10.9999/not-on-the-lab-list
+
+Their earlier work was done in another laboratory, so none of it is on the
+lab's publications page.
+
+## Publications
+
+Outside Author, Someone E. A paper the lab list does not carry. J Elsewhere. 2019;4:11-19. doi:10.5555/elsewhere.2019
