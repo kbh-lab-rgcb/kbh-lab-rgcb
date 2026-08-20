@@ -1,0 +1,5 @@
+name: Parvathy
+role: Project Fellow
+year: 2023
+thesis: Pancreatic Ductal Adenocarcinoma and Hypoxia
+now: 
