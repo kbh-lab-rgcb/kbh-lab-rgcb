@@ -5,13 +5,13 @@ focus: Sphingolipid signalling in inflammation, immunity and cancer
 profile: yes
 
 Harikumar leads the laboratory's work on the role of inflammation in physiology
-— the innate immune response — and in pathophysiology, principally cancer.
+- the innate immune response - and in pathophysiology, principally cancer.
 
 He took his PhD in Biochemistry at Amala Cancer Research Centre, Thrissur, in
 2008, after an MSc from Nagpur University. He was a research intern at the
 UT MD Anderson Cancer Center and a post-doctoral associate at Virginia
 Commonwealth University before returning to India as a DBT Ramalingaswami
-Fellow. He has been at BRIC-RGCB since, as Scientist C, Scientist E-I and now
+Fellow. He has been at BRIC-RGCB since, as Scientist C, Scientist E-I, E-II and now
 Scientist F.
 
 He is a member of the Indian Association for Cancer Research, the American
@@ -20,11 +20,12 @@ of Biotechnology.
 
 ## Positions
 
-Scientist F — Rajiv Gandhi Centre for Biotechnology
-Scientist E-I — Rajiv Gandhi Centre for Biotechnology
+Scientist F - BRIC-Rajiv Gandhi Centre for Biotechnology
+Scientist E-II - BRIC-Rajiv Gandhi Centre for Biotechnology
+Scientist E-I - Rajiv Gandhi Centre for Biotechnology
 Scientist C & Ramalingaswami Fellow — Rajiv Gandhi Centre for Biotechnology
-Post doctoral Associate — Department of Biochemistry & Molecular Biology, School of Medicine, Virginia Commonwealth University, Richmond, VA, USA
-Research Intern — Department of Experimental Therapeutics, UT M. D. Anderson Cancer Center, Houston, TX, USA
+Post doctoral Associate - Department of Biochemistry & Molecular Biology, School of Medicine, Virginia Commonwealth University, Richmond, VA, USA
+Research Intern - Department of Experimental Therapeutics, UT M. D. Anderson Cancer Center, Houston, TX, USA
 
 ## Education
 
@@ -43,3 +44,12 @@ B.Sc Biochemistry, 1999 — Hislop College, Nagpur
 2004-2006 — Senior Research Fellowship by Indian Council of Medical Research (ICMR)
 2004-2005 — Travel award from Indian Association for Cancer Research (IACR)
 2001-2004 — Junior Research Fellowship by Mahatma Gandhi University, India
+
+
+## Memberships
+Member, Indian Association for Cancer Research
+Member, American Association of Indian Scientists in Cancer Research
+Member, European Federation of Bio-technology
+Member, Society of Biological Chemists (India)
+Member, National Society of Ethnopharmacology
+Member, Society For Molecular Imaging And Image Processing
