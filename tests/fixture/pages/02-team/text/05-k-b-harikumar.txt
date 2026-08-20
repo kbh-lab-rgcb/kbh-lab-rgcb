@@ -27,3 +27,9 @@ than being folded into a two-column table it was never meant to be.
 
 - a bulleted list
 - of two things
+
+## Memberships
+
+Society of Fixtures
+Institute of Samples
+Association of Test Cases

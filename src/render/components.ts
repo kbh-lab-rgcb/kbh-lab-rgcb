@@ -9,6 +9,7 @@ import { attr, cls, esc, join } from "../html.ts";
 import type {
   Img,
   Member,
+  ProfileEntry,
   ProfileLink,
   Publication,
   Roster,
@@ -198,6 +199,7 @@ function prosePanel(
     eyebrow?: string;
     title: string;
     lead?: string;
+    entries?: ProfileEntry[];
     html: string;
     why?: string;
     papers?: Publication[];
@@ -223,6 +225,7 @@ function prosePanel(
     parts.eyebrow ? `<p class="section__eyebrow">${esc(parts.eyebrow)}</p>` : "",
     showTitle ? `<h3>${esc(parts.title)}</h3>` : "",
     parts.lead ? `<p class="section__lead">${esc(parts.lead)}</p>` : "",
+    cvList(parts.entries ?? []),
     parts.html,
     "</div>",
 
@@ -281,12 +284,38 @@ function prosePanel(
   ]);
 }
 
+/**
+ * A list of `term — detail` rows: a CV, a list of grants, a list of dates.
+ *
+ * The term column is fixed rather than shrink-to-fit, so the details all start
+ * on the same line down the page. Reading a column of years is the entire point
+ * of writing a list this way.
+ */
+export function cvList(entries: ProfileEntry[], modifier = ""): string {
+  if (entries.length === 0) return "";
+  return join([
+    `<dl class="${cls("cv", modifier && `cv--${modifier}`)}">`,
+    entries
+      .map((entry) =>
+        join([
+          '<div class="cv__row">',
+          `<dt class="cv__term">${esc(entry.term)}</dt>`,
+          `<dd class="cv__detail">${esc(entry.detail)}</dd>`,
+          "</div>",
+        ]),
+      )
+      .join(""),
+    "</dl>",
+  ]);
+}
+
 /** A prose block, paired with its figure when one exists. */
 export function sectionBlock(section: Section, depth: number, showTitle = true): string {
   return prosePanel(
     {
       id: section.slug,
       title: section.title,
+      entries: section.entries,
       html: section.html,
       figure: section.figure,
       caption: section.caption,

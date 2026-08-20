@@ -311,7 +311,15 @@ const DOI_KEY = /\bdoi\s*[:=]\s*(10\.\d{4,9}\/\S+)/gi;
 const PMID_KEY = /\bpmid\s*[:=]\s*(\d{4,9})\b/gi;
 const PMID_URL = /https?:\/\/pubmed\.ncbi\.nlm\.nih\.gov\/(\d{4,9})\/?/gi;
 const PMC_KEY = /\bpmc\s*[:=]\s*(PMC\d{4,9})\b/gi;
-const BARE_URL = /https?:\/\/\S+/gi;
+/*
+ * A plain web address, with the label somebody typed in front of it.
+ *
+ * The capture group is not optional: `take` reads group 1, and a pattern
+ * without one hands it the match offset instead — which is how a citation
+ * ending `URL: https://…` took the whole build down. The label is swallowed
+ * along with the address so the citation does not end in a dangling "URL:".
+ */
+const BARE_URL = /(?:\b(?:url|link|available(?:\s+at)?)\s*[:=]\s*)?(https?:\/\/\S+)/gi;
 
 /** Trailing punctuation belongs to the sentence, not the identifier. */
 function trimId(value: string): string {
@@ -513,8 +521,24 @@ function paragraphsOf(body: string): string[][] {
  * paragraph out of the two-column layout.
  */
 function isLabel(line: string, limit = 60): boolean {
-  return line.length <= limit && /^[A-Z0-9"'(]/.test(line) && !/[.,;:]$/.test(line);
+  return (
+    line.length <= limit &&
+    /^[A-Z0-9"'(]/.test(line) &&
+    !/[.,;:]$/.test(line) &&
+    !CONTINUATION.test(line)
+  );
 }
+
+/**
+ * Words a wrapped sentence breaks after, and a list item never ends on.
+ *
+ * This is what tells a pasted list of societies apart from a paragraph someone
+ * hard-wrapped at eighty columns. `…returning to India as a DBT Ramalingaswami`
+ * ends on "a" and is plainly mid-sentence; `Society of Biological Chemists
+ * (India)` is plainly an item.
+ */
+const CONTINUATION =
+  /\b(?:a|an|the|and|or|of|in|on|at|to|for|with|from|by|as|is|are|was|were|has|have|that|which|into|than|between|its|their|his|her)$/i;
 
 /**
  * Read a block as a plain list: one thing per line, with no detail beside it.
@@ -530,12 +554,13 @@ function isLabel(line: string, limit = 60): boolean {
 export function parseItems(body: string): string[] | null {
   if (body.split("\n").some((line) => MARKDOWN_LINE.test(line))) return null;
 
-  const blocks = paragraphsOf(body);
-  if (blocks.length < 2 || !blocks.every((block) => block.length === 1)) return null;
+  // Blank lines between the items or none at all: people paste both.
+  const lines = paragraphsOf(body).flat();
+  if (lines.length < 2) return null;
 
-  // Longer than a CV term is allowed here: the protection that matters is that
-  // every paragraph is a single line, which a wrapped one never is.
-  const lines = blocks.map((block) => block[0]!);
+  // Longer than a CV term is allowed — an institution's full name runs long —
+  // so `isLabel` is carrying the weight here: every line has to start like an
+  // item and end like an item, which a wrapped sentence does not.
   return lines.every((line) => isLabel(line, 120)) ? lines : null;
 }
 

@@ -277,6 +277,33 @@ test("a person's page lists the papers they are an author of", () => {
   assert.ok(!page.includes("A paper with no identifier at all"));
 });
 
+/* ------------------------------------------------- Lists written as lists */
+
+test("a page section of term — detail lines becomes two-column rows", () => {
+  const html = fixture["grants/index.html"];
+  assert.ok(html, "the grants page should be generated");
+  assert.match(html, /<dt class="cv__term">2018–2022<\/dt>/);
+  assert.match(html, /<dd class="cv__detail">Understanding a thing\. Council of Fixtures \(CF\)<\/dd>/);
+});
+
+test("a hard-wrapped paragraph is never shredded into a list or a table", () => {
+  const html = fixture["grants/index.html"];
+  const notes = html.slice(html.indexOf('id="notes"'));
+  const block = notes.slice(0, notes.indexOf("</div></div>"));
+  assert.ok(!block.includes("cv__term"), "prose must not become CV rows");
+  assert.ok(!block.includes("<li>"), "prose must not become list items");
+  assert.match(block, /<p>This paragraph is hard-wrapped/);
+});
+
+test("things pasted one per line become a real list, not one grey paragraph", () => {
+  const html = fixture["team/k-b-harikumar/index.html"];
+  const memberships = html.slice(html.indexOf("Memberships"));
+  const block = memberships.slice(0, memberships.indexOf("</section>"));
+  assert.match(block, /<li>Society of Fixtures<\/li>/);
+  assert.match(block, /<li>Institute of Samples<\/li>/);
+  assert.ok(!block.includes("Society of Fixtures Institute of Samples"), "never run together");
+});
+
 test("a DOI that is not on the publications page still appears on the profile", () => {
   const page = fixture["team/outside-author/index.html"];
   assert.ok(page, "the profile page should be generated");
@@ -343,11 +370,36 @@ test("lab authors are bolded in citations and others are not", () => {
   assert.ok(!html.includes("<strong>Someone Else</strong>"));
 });
 
-test("all ten real publications render with a link out to the paper", () => {
+/*
+ * Counted against the content again, not against a number written here. The
+ * publications page grew from ten papers to seventy-seven in one commit, and a
+ * test that pins the total contradicts the promise the site is built on.
+ */
+test("every real publication renders, and the ones with identifiers link out", () => {
   const html = real["publications/index.html"];
-  assert.equal((html.match(/<li class="pub">/g) ?? []).length, 10);
-  assert.equal((html.match(/href="https:\/\/doi\.org\//g) ?? []).length, 10);
-  assert.equal((html.match(/href="https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\//g) ?? []).length, 10);
+  const papers = realResult.site.pages
+    .flatMap((page) => page.publicationYears)
+    .flatMap((group) => group.items);
+
+  assert.ok(papers.length > 0, "the publications page should carry papers");
+  assert.equal((html.match(/<li class="pub">/g) ?? []).length, papers.length);
+
+  const count = (kind) => papers.filter((p) => p.links.some((l) => l.kind === kind)).length;
+  assert.equal((html.match(/href="https:\/\/doi\.org\//g) ?? []).length, count("doi"));
+  assert.equal(
+    (html.match(/href="https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\//g) ?? []).length,
+    count("pmid"),
+  );
+});
+
+test("a citation ending in a plain web address builds and links out", () => {
+  // A URL with no capture group in the pattern behind it took the whole build
+  // down once; the fixture carries one so that can never happen quietly again.
+  const html = fixture["publications/index.html"];
+  assert.match(html, /href="https:\/\/example\.org\/book\/9781439821442"/);
+  assert.match(html, /A book with a plain web address at the end\. CRC Press, 2025\./);
+  // The `URL:` label goes with the address rather than being left dangling.
+  assert.ok(!html.includes("2025. URL"));
 });
 
 /* ----------------------------------------------- Only-if-added: stories */

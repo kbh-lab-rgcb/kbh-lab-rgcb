@@ -1,3 +1,5 @@
 Harikumar KB. A paper that has identifiers. J Fixture. 2025;1:1-2. pmid:12345678 doi:10.1234/fixture.2025
 
 Someone Else. A paper with no identifier at all. J Fixture. 2025;1:3-4.
+
+Harikumar KB. A book with a plain web address at the end. CRC Press, 2025. URL: https://example.org/book/9781439821442

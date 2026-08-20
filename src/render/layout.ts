@@ -3,7 +3,7 @@
  */
 
 import { attr, esc, join } from "../html.ts";
-import type { Page, Site } from "../content/types.ts";
+import type { Img, Page, Site } from "../content/types.ts";
 import { icons } from "./icons.ts";
 import { image } from "./components.ts";
 import { hrefTo, rel } from "./url.ts";
@@ -176,6 +176,38 @@ function footer(site: Site, depth: number): string {
   ]);
 }
 
+/**
+ * Absolute URLs for the things that cannot be relative.
+ *
+ * Every link the site emits is relative, which is what lets the same output
+ * work at a project path, on a custom domain and straight off disk. Link
+ * previews and canonical tags are the exception — a chat client resolving
+ * `../assets/…` against its own host gets nothing — so these are the only
+ * absolute URLs on the page, and they exist only when `url` is set in
+ * `site.json`. Left out, the page is exactly as it was before.
+ */
+function absolute(site: Site, path: string): string {
+  const base = site.config.url.replace(/\/+$/, "");
+  if (!base) return "";
+  return `${base}/${path.replace(/^\/+/, "")}`;
+}
+
+/**
+ * The picture a link to this page unfurls with: its own banner, or the first
+ * photograph the site has anywhere.
+ *
+ * SVGs are skipped rather than preferred-against: several chat clients render
+ * nothing at all for them, and a preview with an empty box where the picture
+ * should be is worse than a preview with no picture.
+ */
+function shareImage(site: Site, page: Page): string {
+  const raster = (picture: Img) => !picture.src.toLowerCase().endsWith(".svg");
+  const picture =
+    page.banners.find(raster) ??
+    site.pages.flatMap((other) => other.banners).find(raster);
+  return picture ? absolute(site, picture.src) : "";
+}
+
 export function renderDocument(options: {
   site: Site;
   page: Page;
@@ -184,6 +216,8 @@ export function renderDocument(options: {
   description: string;
 }): string {
   const { site, page, depth, body, description } = options;
+  const pageUrl = absolute(site, page.outDir ? `${page.outDir}/` : "");
+  const shareUrl = shareImage(site, page);
   const title =
     page.kind === "home"
       ? site.config.name
@@ -200,6 +234,11 @@ export function renderDocument(options: {
     `<meta property="og:title" content="${esc(title)}">`,
     `<meta property="og:description" content="${esc(description)}">`,
     '<meta property="og:type" content="website">',
+    site.config.name ? `<meta property="og:site_name" content="${esc(site.config.name)}">` : "",
+    pageUrl ? `<meta property="og:url" content="${esc(pageUrl)}">` : "",
+    pageUrl ? `<link rel="canonical" href="${esc(pageUrl)}">` : "",
+    shareUrl ? `<meta property="og:image" content="${esc(shareUrl)}">` : "",
+    shareUrl ? '<meta name="twitter:card" content="summary_large_image">' : "",
     '<meta name="theme-color" content="#0e7490" media="(prefers-color-scheme: light)">',
     '<meta name="theme-color" content="#0d1520" media="(prefers-color-scheme: dark)">',
     `<link rel="icon" href="${esc(rel(depth, "favicon.svg"))}" type="image/svg+xml">`,

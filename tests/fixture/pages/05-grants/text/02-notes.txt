@@ -1,0 +1,9 @@
+title: Notes
+
+This paragraph is hard-wrapped the way an editor's browser window wraps it, and
+every line of it has to stay part of one paragraph rather than being shredded
+into a list of fragments by the list detection.
+
+A second paragraph, for the same reason. The two of them together must not be
+read as a term and a detail either, which is what the pair rule would do if it
+were not held to short label lines.

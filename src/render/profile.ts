@@ -16,7 +16,7 @@ import type {
   PublicationYear,
   Site,
 } from "../content/types.ts";
-import { image, linkList, reveal } from "./components.ts";
+import { cvList, image, linkList, reveal } from "./components.ts";
 import { citedAs, excerpt, field, parseDoiList } from "../content/text.ts";
 import { icons } from "./icons.ts";
 import { hrefTo } from "./url.ts";
@@ -91,20 +91,7 @@ function profileSection(section: ProfileSection, index: number): string {
     `<section class="profile-section"${reveal(index)}>`,
     `<h2 class="profile-section__title">${esc(section.title)}</h2>`,
     section.entries.length > 0
-      ? join([
-          '<dl class="cv">',
-          section.entries
-            .map((entry) =>
-              join([
-                '<div class="cv__row">',
-                `<dt class="cv__term">${esc(entry.term)}</dt>`,
-                `<dd class="cv__detail">${esc(entry.detail)}</dd>`,
-                "</div>",
-              ]),
-            )
-            .join(""),
-          "</dl>",
-        ])
+      ? cvList(section.entries)
       : `<div class="prose">${section.html}</div>`,
     "</section>",
   ]);
@@ -113,27 +100,12 @@ function profileSection(section: ProfileSection, index: number): string {
 /** Alumni facts that would otherwise only exist on the card they came from. */
 function facts(member: Member): string {
   const rows = [
-    member.year && { label: "Finished", value: member.year },
-    member.thesis && { label: "Thesis", value: member.thesis },
-    member.now && { label: "Now", value: member.now },
-  ].filter(Boolean) as { label: string; value: string }[];
+    member.year && { term: "Finished", detail: member.year },
+    member.thesis && { term: "Thesis", detail: member.thesis },
+    member.now && { term: "Now", detail: member.now },
+  ].filter(Boolean) as { term: string; detail: string }[];
 
-  if (rows.length === 0) return "";
-
-  return join([
-    '<dl class="cv cv--facts">',
-    rows
-      .map((row) =>
-        join([
-          '<div class="cv__row">',
-          `<dt class="cv__term">${esc(row.label)}</dt>`,
-          `<dd class="cv__detail">${esc(row.value)}</dd>`,
-          "</div>",
-        ]),
-      )
-      .join(""),
-    "</dl>",
-  ]);
+  return cvList(rows, "facts");
 }
 
 export function renderProfileBody(

@@ -114,6 +114,7 @@ async function readIfPresent(path: string): Promise<string | null> {
 
 const DEFAULT_CONFIG: SiteConfig = {
   name: "Research Lab",
+  url: "",
   shortName: "Lab",
   tagline: "",
   description: "",

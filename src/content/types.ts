@@ -276,6 +276,9 @@ export type Page = {
 
 export type SiteConfig = {
   name: string;
+  /** Where the site is published, e.g. `https://kbh-lab-rgcb.github.io`. Used
+   * only for the absolute URLs that link previews and search engines need. */
+  url: string;
   shortName: string;
   tagline: string;
   description: string;
