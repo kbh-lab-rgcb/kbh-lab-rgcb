@@ -1,0 +1,5 @@
+name: Anjana
+role: Project Assistant 
+year: 2026
+thesis: Autophagy and Pancreatic Ductal Adenocarcinoma, Curcumin Research
+now: Project Assistant, BRIC-RGCB-MLS, Kochi 
