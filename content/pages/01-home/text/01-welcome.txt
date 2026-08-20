@@ -1,7 +1,7 @@
 title: Inflammation, resolved
 
 Inflammation is how the body answers injury and infection. Switching that answer
-off again — *resolution* — is just as active a process, and just as tightly
+off again - *resolution* — is just as active a process, and just as tightly
 controlled. When resolution fails, inflammation persists, and persistent
 inflammation is one of the surest routes to cancer.
 

@@ -276,6 +276,12 @@ export type Page = {
 
 export type SiteConfig = {
   name: string;
+  /**
+   * The lab's own name, e.g. `KBH Lab`, when it differs from the programme
+   * name. Shown as the home page heading, with `name` above it. Left out, the
+   * home page leads with `name` as it always has.
+   */
+  labName: string;
   /** Where the site is published, e.g. `https://kbh-lab-rgcb.github.io`. Used
    * only for the absolute URLs that link previews and search engines need. */
   url: string;

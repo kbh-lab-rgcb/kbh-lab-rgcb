@@ -31,10 +31,22 @@ const THEME_BOOT =
   `})();`;
 
 function banner(page: Page, depth: number, site: Site): string {
+  const { config } = site;
   const images = page.banners;
   const isHome = page.kind === "home";
-  const heading = isHome ? site.config.name : page.title;
-  const lead = isHome ? site.config.tagline : page.tagline;
+
+  /*
+   * The home page leads with the lab's own name and carries the programme it
+   * belongs to in the line above, written out in full: an acronym over the
+   * front door tells a first-time visitor nothing, and the two names answer
+   * different questions — who this is, and where they sit.
+   *
+   * With no `labName` in site.json this is exactly what it was before: the site
+   * name as the heading, the short name above it.
+   */
+  const heading = isHome ? config.labName || config.name : page.title;
+  const eyebrow = isHome && config.labName ? config.name : config.shortName || config.name;
+  const lead = isHome ? config.tagline : page.tagline;
 
   const modifier = images.length > 0 ? "banner--image" : "banner--empty";
   const tall = isHome ? " banner--tall" : "";
@@ -77,9 +89,7 @@ function banner(page: Page, depth: number, site: Site): string {
       ? `<div class="banner__media"${images.length > 1 ? " data-carousel" : ""}>${slides}</div><div class="banner__scrim"></div>`
       : '<div class="banner__media"></div>',
     '<div class="container banner__inner">',
-    isHome && site.config.shortName
-      ? `<p class="banner__eyebrow">${esc(site.config.shortName)}</p>`
-      : `<p class="banner__eyebrow">${esc(site.config.shortName || site.config.name)}</p>`,
+    `<p class="banner__eyebrow">${esc(eyebrow)}</p>`,
     `<h1>${esc(heading)}</h1>`,
     lead ? `<p class="banner__lead">${esc(lead)}</p>` : "",
     isHome
@@ -218,9 +228,11 @@ export function renderDocument(options: {
   const { site, page, depth, body, description } = options;
   const pageUrl = absolute(site, page.outDir ? `${page.outDir}/` : "");
   const shareUrl = shareImage(site, page);
+  // The home page's tab and search result carry both names, for the same
+  // reason the banner does: one is searched for, the other is recognised.
   const title =
     page.kind === "home"
-      ? site.config.name
+      ? join([site.config.labName, site.config.name], " · ")
       : `${page.title} · ${site.config.shortName || site.config.name}`;
 
   return join([

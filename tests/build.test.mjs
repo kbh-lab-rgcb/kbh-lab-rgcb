@@ -167,6 +167,29 @@ test("the real home page is a carousel with one dot per banner image", () => {
   assert.equal((real["index.html"].match(/data-dot/g) ?? []).length, home.banners.length);
 });
 
+test("the home page leads with the lab name and spells out the programme", () => {
+  const home = real["index.html"];
+  const { labName, name, shortName } = realResult.site.config;
+  assert.ok(labName, "site.json should carry the lab's own name");
+
+  assert.match(home, new RegExp(`<h1>${labName}</h1>`));
+  assert.match(home, new RegExp(`class="banner__eyebrow">${name}</p>`));
+  assert.match(home, new RegExp(`<title>${labName} · ${name}</title>`));
+  // The acronym is not what greets a first-time visitor.
+  assert.ok(!home.includes(`class="banner__eyebrow">${shortName}</p>`));
+
+  // Every other page keeps the short name above its own title.
+  assert.match(real["research/index.html"], new RegExp(`class="banner__eyebrow">${shortName}</p>`));
+});
+
+test("without a lab name the home page leads with the site name, as before", () => {
+  // The fixture's site.json has no `labName`, so it exercises the fallback.
+  assert.equal(fixtureResult.site.config.labName, "");
+  const home = fixture["index.html"];
+  assert.match(home, new RegExp(`<h1>${fixtureResult.site.config.name}</h1>`));
+  assert.match(home, new RegExp(`<title>${fixtureResult.site.config.name}</title>`));
+});
+
 /* -------------------------------------------- Only-if-added: profiles */
 
 test("a member with no orcid emits no ORCID markup at all", () => {
