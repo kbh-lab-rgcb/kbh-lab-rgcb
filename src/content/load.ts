@@ -22,6 +22,8 @@ import {
   parseDoc,
   parseDoiList,
   parseProfile,
+  parseEntries,
+  renderBlock,
   parseName,
   plainText,
   profileLinks,
@@ -301,11 +303,16 @@ async function loadSections(ctx: Ctx): Promise<Section[]> {
       });
     }
 
+    // A section can be a list of grants as easily as a paragraph, and the same
+    // `term — detail` convention reads it here as it does on a person's page.
+    const entries = parseEntries(body);
+
     sections.push({
       slug,
       order,
       title: field(fields, "title", "heading") || titleFromSlug(slug),
-      html: renderMarkdown(body),
+      entries: entries ?? [],
+      html: entries ? "" : renderBlock(body),
       text: plainText(body),
       figure: await figureFor(
         slug,

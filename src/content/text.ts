@@ -481,13 +481,12 @@ export function parseEntries(body: string): ProfileEntry[] | null {
     return split as ProfileEntry[];
   }
 
-  const blocks = body
-    .split(/\n\s*\n/)
-    .map((block) => block.split("\n").map((line) => line.trim()).filter(Boolean))
-    .filter((block) => block.length > 0);
+  const blocks = paragraphsOf(body);
 
-  // One line on its own is a paragraph, not a term missing its detail.
-  if (blocks.length >= 2 && blocks.every((block) => block.length >= 2 && block[0]!.length <= 80)) {
+  // One line on its own is a paragraph, not a term missing its detail — and the
+  // first line has to read like a label, or the opening line of an ordinary
+  // two-paragraph section would be mistaken for the term of the first row.
+  if (blocks.length >= 2 && blocks.every((block) => block.length >= 2 && isLabel(block[0]!))) {
     return blocks.map((block) => ({
       term: block[0]!,
       detail: block.slice(1).join(" "),
@@ -497,6 +496,60 @@ export function parseEntries(body: string): ProfileEntry[] | null {
   return null;
 }
 
+/** The paragraphs of a block, each as its non-empty lines. */
+function paragraphsOf(body: string): string[][] {
+  return body
+    .split(/\n\s*\n/)
+    .map((block) => block.split("\n").map((line) => line.trim()).filter(Boolean))
+    .filter((block) => block.length > 0);
+}
+
+/**
+ * Does this line read as a label rather than as a sentence?
+ *
+ * A CV term is short, starts with a capital or a year, and does not end in the
+ * punctuation that carries a sentence on. A line of hard-wrapped prose fails on
+ * length long before any of the rest is asked, which is what keeps an ordinary
+ * paragraph out of the two-column layout.
+ */
+function isLabel(line: string, limit = 60): boolean {
+  return line.length <= limit && /^[A-Z0-9"'(]/.test(line) && !/[.,;:]$/.test(line);
+}
+
+/**
+ * Read a block as a plain list: one thing per line, with no detail beside it.
+ *
+ * Memberships, committees, conferences attended — people paste these one per
+ * line, and markdown would otherwise run the whole lot together into a single
+ * grey paragraph, which is exactly what it looks like when it goes wrong.
+ *
+ * Held to the same `isLabel` test as a CV term, so a wrapped paragraph is never
+ * shredded into bullets. Blank lines between the items are allowed, because
+ * half the people who paste a list leave them in.
+ */
+export function parseItems(body: string): string[] | null {
+  if (body.split("\n").some((line) => MARKDOWN_LINE.test(line))) return null;
+
+  const blocks = paragraphsOf(body);
+  if (blocks.length < 2 || !blocks.every((block) => block.length === 1)) return null;
+
+  // Longer than a CV term is allowed here: the protection that matters is that
+  // every paragraph is a single line, which a wrapped one never is.
+  const lines = blocks.map((block) => block[0]!);
+  return lines.every((line) => isLabel(line, 120)) ? lines : null;
+}
+
+/**
+ * The HTML for a block that is not a list of two-column entries.
+ *
+ * A plain list — one thing per line — is turned into a real list rather than
+ * left to markdown, which would join the lines into one grey paragraph.
+ * Everything else is rendered as the markdown it is.
+ */
+export function renderBlock(body: string): string {
+  const items = parseItems(body);
+  return renderMarkdown(items ? items.map((item) => `- ${item}`).join("\n") : body);
+}
 /** Headings under which a block of text is a list of papers, not prose. */
 const PAPERS_HEADING = /^(?:selected|recent|key|other)?\s*(?:publications?|papers|preprints|articles)$/i;
 
@@ -575,7 +628,7 @@ export function parseProfile(
       slug: slugify(block.title) || `section-${sections.length + 1}`,
       title: block.title,
       entries: entries ?? [],
-      html: entries || papers.length > 0 ? "" : renderMarkdown(text),
+      html: entries || papers.length > 0 ? "" : renderBlock(text),
       papers,
     });
   }

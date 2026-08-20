@@ -67,6 +67,11 @@ export type Section = {
   /** The `NN-` prefix from the filename; orders this against the stories. */
   order: number;
   title: string;
+  /**
+   * Two-column rows, when the body is a list of `term — detail` lines rather
+   * than prose — a list of grants, a list of dates. Empty otherwise.
+   */
+  entries: ProfileEntry[];
   /** Rendered HTML of the body. */
   html: string;
   /** Plain-text body, used for meta descriptions and excerpts. */
