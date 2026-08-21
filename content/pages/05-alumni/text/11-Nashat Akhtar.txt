@@ -1,0 +1,5 @@
+name: Nashat Akhtar
+role: Project Research Scientist-I
+year: 2022
+thesis: Organoid development and Hypoxia of Pancreatic cancer 
+now: PhD at IIMCB, Warsaw, Poland
